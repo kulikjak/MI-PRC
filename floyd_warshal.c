@@ -1,7 +1,9 @@
 #include <stdlib.h>
+#include <limits.h>
 #include <stdio.h>
 
-#define INF 65536
+
+#define INF SHRT_MAX
 
 
 int32_t **read_matrix(FILE* graph_file, int32_t size) {
@@ -14,16 +16,18 @@ int32_t **read_matrix(FILE* graph_file, int32_t size) {
 
   // load adjacency matrix into the memory
   for (i = 0; i < size; i++)
-  for (j = 0; j < size; j++)
-    fscanf(graph_file, "%d", &(graph_matrix[i][j]));
+  for (j = 0; j < size; j++) {
+    if(!fscanf(graph_file, "%d", &(graph_matrix[i][j]))) {
+      printf("Error loading file\n");
+      exit(EXIT_FAILURE);
+    }
+  }
 
   return graph_matrix;
 }
 
 void print_result(int32_t **distance_matrix, int32_t size) {
   int32_t i, j;
-
-  printf("Shortest distances between every pair of vertices: \n");
 
   for (i = 0; i < size; i++) {
     for (j = 0; j < size; j++) {
@@ -47,7 +51,7 @@ int32_t **floyd_warshall(int32_t **graph_matrix, int32_t size) {
   // set default values for distance matrix
   for (i = 0; i < size; i++)
     for (j = 0; j < size; j++)
-      distance_matrix[i][j] = graph_matrix[i][j];
+      distance_matrix[i][j] = (i == j) ? 0 : (graph_matrix[i][j]) ? 1 : INF;
 
   // run floyd warshal itself
   for (int k = 0; k < size; k++)
