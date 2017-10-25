@@ -88,24 +88,19 @@ int32_t *dijkstra(int32_t **distance_matrix, int32_t from, int32_t size){
     return distance;
 }
 
+void prepare_matrix(int32_t **graph_matrix, int32_t size) {
+    int i, j;
 
-int32_t **dijkstra_all(int32_t **graph_matrix, int32_t size) {
-    int32_t i, j, k;
-
-    // allocate distance matrix
-    int32_t **distance_matrix = (int32_t**) malloc (size * sizeof(int32_t*));
-    for (i = 0; i < size; i++)
-        distance_matrix[i] = (int32_t*) malloc (size * sizeof(int32_t));
-
-    // set default values for distance matrix
     for (i = 0; i < size; i++)
         for (j = 0; j < size; j++)
-            distance_matrix[i][j] = (i == j) ? 0 : (graph_matrix[i][j]) ? 1 : INF;
+            graph_matrix[i][j] = (i != j && graph_matrix[i][j] == 0) ? INF : graph_matrix[i][j];
+}
+
+void dijkstra_all(int32_t **graph_matrix, int32_t size) {
 
     for (int i = 0; i < size; i++)
-        distance_matrix[i] = dijkstra(distance_matrix, i, size);
+        graph_matrix[i] = dijkstra(graph_matrix, i, size);
 
-    return distance_matrix;
 }
 
 void free_matrix(int32_t **matrix, int32_t size) {
@@ -141,10 +136,10 @@ int main(int argc, char* argv[]) {
     graph_matrix = read_matrix(graph_file, size);
     fclose(graph_file);
 
-    distance_matrix = dijkstra_all(graph_matrix, size);
-    print_result(distance_matrix, size);
+    prepare_matrix(graph_matrix, size);
+    dijkstra_all(graph_matrix, size);
+    print_result(graph_matrix, size);
 
-    free_matrix(distance_matrix, size);
     free_matrix(graph_matrix, size);
 
     return EXIT_SUCCESS;
