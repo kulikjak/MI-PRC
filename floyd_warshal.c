@@ -2,51 +2,10 @@
 #include <limits.h>
 #include <stdio.h>
 
-#define INF SHRT_MAX
+#include "utils.h"
 
 
-int32_t **read_matrix(FILE* graph_file, int32_t size) {
-  int32_t i, j;
-
-  // allocate graph matrix
-  int32_t **graph_matrix = (int32_t**) malloc (size * sizeof(int32_t*));
-  for (i = 0; i < size; i++)
-    graph_matrix[i] = (int32_t*) malloc (size * sizeof(int32_t));
-
-  // load adjacency matrix into the memory
-  for (i = 0; i < size; i++)
-  for (j = 0; j < size; j++) {
-    if (!fscanf(graph_file, "%d", &(graph_matrix[i][j]))) {
-      printf("Error loading file\n");
-      exit(EXIT_FAILURE);
-    }
-  }
-  return graph_matrix;
-}
-
-void print_result(int32_t **distance_matrix, int32_t size) {
-  int32_t i, j;
-
-  for (i = 0; i < size; i++) {
-    for (j = 0; j < size; j++) {
-      if (distance_matrix[i][j] == INF)
-        printf("%5s", "INF");
-      else
-        printf("%5d", distance_matrix[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-void prepare_matrix(int32_t **graph_matrix, int32_t size) {
-  int i, j;
-
-  for (i = 0; i < size; i++)
-    for (j = 0; j < size; j++)
-      graph_matrix[i][j] = (i != j && graph_matrix[i][j] == 0) ? INF : graph_matrix[i][j];
-}
-
-void floyd_warshall(int32_t **graph_matrix, int32_t size) {
+void floyd_warshall(matrix graph_matrix, int32_t size) {
   int32_t i, j, k;
 
   for (k = 0; k < size; k++)
@@ -57,17 +16,11 @@ void floyd_warshall(int32_t **graph_matrix, int32_t size) {
   }
 }
 
-void free_matrix(int32_t **matrix, int32_t size) {
-  int32_t i;
-
-  for (i = 0; i < size; i++)
-    free(matrix[i]);
-  free(matrix);
-}
-
 int main(int argc, char* argv[]) {
+  int32_t size;
+
   FILE *graph_file;
-  int32_t **graph_matrix, size;
+  matrix graph_matrix;
 
   if (argc != 2) {
     printf("Wrong input\n");
@@ -90,7 +43,7 @@ int main(int argc, char* argv[]) {
   prepare_matrix(graph_matrix, size);
   floyd_warshall(graph_matrix, size);
 
-  print_result(graph_matrix, size);
+  print_matrix(graph_matrix, size);
 
   fclose(graph_file);
   free_matrix(graph_matrix, size);
