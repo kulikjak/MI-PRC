@@ -105,6 +105,7 @@ int32_t **dijkstra_all(int32_t **graph_matrix, int32_t size) {
     for (int i = 0; i < size; i++)
         distance_matrix[i] = dijkstra(distance_matrix, i, size);
 
+    return distance_matrix;
 }
 
 void free_matrix(int32_t **matrix, int32_t size) {
