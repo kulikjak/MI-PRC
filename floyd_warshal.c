@@ -2,7 +2,6 @@
 #include <limits.h>
 #include <stdio.h>
 
-
 #define INF SHRT_MAX
 
 
@@ -17,12 +16,11 @@ int32_t **read_matrix(FILE* graph_file, int32_t size) {
   // load adjacency matrix into the memory
   for (i = 0; i < size; i++)
   for (j = 0; j < size; j++) {
-    if(!fscanf(graph_file, "%d", &(graph_matrix[i][j]))) {
+    if (!fscanf(graph_file, "%d", &(graph_matrix[i][j]))) {
       printf("Error loading file\n");
       exit(EXIT_FAILURE);
     }
   }
-
   return graph_matrix;
 }
 
@@ -40,28 +38,23 @@ void print_result(int32_t **distance_matrix, int32_t size) {
   }
 }
 
-int32_t **floyd_warshall(int32_t **graph_matrix, int32_t size) {
-  int32_t i, j, k;
+void prepare_matrix(int32_t **graph_matrix, int32_t size) {
+  int i, j;
 
-  // allocate distance matrix
-  int32_t **distance_matrix = (int32_t**) malloc (size * sizeof(int32_t*));
-  for (i = 0; i < size; i++)
-    distance_matrix[i] = (int32_t*) malloc (size * sizeof(int32_t));
-
-  // set default values for distance matrix
   for (i = 0; i < size; i++)
     for (j = 0; j < size; j++)
-      distance_matrix[i][j] = (i == j) ? 0 : (graph_matrix[i][j]) ? 1 : INF;
+      graph_matrix[i][j] = (i != j && graph_matrix[i][j] == 0) ? INF : graph_matrix[i][j];
+}
 
-  // run floyd warshal itself
-  for (int k = 0; k < size; k++)
-  for (int i = 0; i < size; i++)
-  for (int j = 0; j < size; j++) {
-    if (distance_matrix[i][k] + distance_matrix[k][j] < distance_matrix[i][j])
-      distance_matrix[i][j] = distance_matrix[i][k] + distance_matrix[k][j];
+void floyd_warshall(int32_t **graph_matrix, int32_t size) {
+  int32_t i, j, k;
+
+  for (k = 0; k < size; k++)
+  for (i = 0; i < size; i++)
+  for (j = 0; j < size; j++) {
+    if (graph_matrix[i][k] + graph_matrix[k][j] < graph_matrix[i][j])
+      graph_matrix[i][j] = graph_matrix[i][k] + graph_matrix[k][j];
   }
-
-  return distance_matrix;
 }
 
 void free_matrix(int32_t **matrix, int32_t size) {
@@ -74,8 +67,7 @@ void free_matrix(int32_t **matrix, int32_t size) {
 
 int main(int argc, char* argv[]) {
   FILE *graph_file;
-  int32_t size;
-  int32_t **distance_matrix, **graph_matrix;
+  int32_t **graph_matrix, size;
 
   if (argc != 2) {
     printf("Wrong input\n");
@@ -95,12 +87,12 @@ int main(int argc, char* argv[]) {
   }
 
   graph_matrix = read_matrix(graph_file, size);
+  prepare_matrix(graph_matrix, size);
+  floyd_warshall(graph_matrix, size);
+
+  print_result(graph_matrix, size);
+
   fclose(graph_file);
-
-  distance_matrix = floyd_warshall(graph_matrix, size);
-  print_result(distance_matrix, size);
-
-  free_matrix(distance_matrix, size);
   free_matrix(graph_matrix, size);
 
   return EXIT_SUCCESS;

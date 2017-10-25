@@ -1,4 +1,4 @@
-CXX = gcc -O2
+CXX = gcc -g -O2
 
 all: floyd_warshal dijkstra
 
@@ -9,7 +9,6 @@ dijkstra: dijkstra.c
 	$(CXX) $^ -o $@
 
 clean:
-	rm -f floyd_warshal
-	rm -f dijkstra
+	rm -f floyd_warshal dijkstra
 
 .PHONY: all floyd_warshal dijkstra clean
