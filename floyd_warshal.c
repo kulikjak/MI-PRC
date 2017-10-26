@@ -1,26 +1,29 @@
 #include <stdlib.h>
-#include <limits.h>
 #include <stdio.h>
 
 #include "utils.h"
 
 
-void floyd_warshall(matrix graph_matrix, int32_t size) {
+matrix floyd_warshall(const matrix graph_matrix, int32_t size) {
   int32_t i, j, k;
+
+  matrix distance_matrix = get_distance_matrix(graph_matrix, size);
 
   for (k = 0; k < size; k++)
   for (i = 0; i < size; i++)
   for (j = 0; j < size; j++) {
-    if (graph_matrix[i][k] + graph_matrix[k][j] < graph_matrix[i][j])
-      graph_matrix[i][j] = graph_matrix[i][k] + graph_matrix[k][j];
+    if (distance_matrix[i][k] + distance_matrix[k][j] < distance_matrix[i][j])
+      distance_matrix[i][j] = distance_matrix[i][k] + distance_matrix[k][j];
   }
+
+  return distance_matrix;
 }
 
 int main(int argc, char* argv[]) {
   int32_t size;
 
   FILE *graph_file;
-  matrix graph_matrix;
+  matrix graph_matrix, distance_matrix;
 
   if (argc != 2) {
     printf("Wrong input\n");
@@ -40,13 +43,13 @@ int main(int argc, char* argv[]) {
   }
 
   graph_matrix = read_matrix(graph_file, size);
-  prepare_matrix(graph_matrix, size);
-  floyd_warshall(graph_matrix, size);
+  distance_matrix = floyd_warshall(graph_matrix, size);
 
-  print_matrix(graph_matrix, size);
+  print_matrix(distance_matrix, size);
 
-  fclose(graph_file);
   free_matrix(graph_matrix, size);
+  free_matrix(distance_matrix, size);
+  fclose(graph_file);
 
   return EXIT_SUCCESS;
 }

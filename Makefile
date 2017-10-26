@@ -3,10 +3,10 @@ CXX = gcc -g -O2
 all: floyd_warshal dijkstra
 
 floyd_warshal: floyd_warshal.c utils.h
-	$(CXX) $^ -o $@
+	$(CXX) floyd_warshal.c -o $@
 
 dijkstra: dijkstra.c utils.h
-	$(CXX) $^ -o $@
+	$(CXX) dijkstra.c -o $@
 
 randomizer: randomizer.c utils.h
 	$(CXX) $^ -o $@

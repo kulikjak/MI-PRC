@@ -1,146 +1,94 @@
 #include <stdlib.h>
-#include <limits.h>
 #include <stdio.h>
 
+#include "utils.h"
 
-#define INF SHRT_MAX
 
+int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
 
-int32_t **read_matrix(FILE* graph_file, int32_t size) {
-    int32_t i, j;
+  int32_t *distance = (int32_t*) malloc (size * sizeof(int32_t));
 
-    // allocate graph matrix
-    int32_t **graph_matrix = (int32_t**) malloc (size * sizeof(int32_t*));
-    for (i = 0; i < size; i++)
-        graph_matrix[i] = (int32_t*) malloc (size * sizeof(int32_t));
+  int pred[size];
+  int visited[size],count,mindistance,nextnode;
 
-    // load adjacency matrix into the memory
-    for (i = 0; i < size; i++)
-        for (j = 0; j < size; j++) {
-            if(!fscanf(graph_file, "%d", &(graph_matrix[i][j]))) {
-                printf("Error loading file\n");
-                exit(EXIT_FAILURE);
-            }
-        }
+  //pred[] stores the predecessor of each node
+  //count gives the number of nodes seen so far
 
-    return graph_matrix;
-}
+  //initialize pred[],distance[] and visited[]
+  for(int i=0;i<size;i++)
+  {
+    distance[i]=distance_matrix[from][i];
+    pred[i]=from;
+    visited[i]=0;
+  }
 
-void print_result(int32_t **distance_matrix, int32_t size) {
-    int32_t i, j;
+  distance[from]=0;
+  visited[from]=1;
+  count=1;
 
-    for (i = 0; i < size; i++) {
-        for (j = 0; j < size; j++) {
-            if (distance_matrix[i][j] == INF)
-                printf("%5s", "INF");
-            else
-                printf("%5d", distance_matrix[i][j]);
-        }
-        printf("\n");
-    }
-}
+  while(count<size-1)
+  {
+    mindistance=INF;
 
-int32_t *dijkstra(int32_t **distance_matrix, int32_t from, int32_t size){
-
-    int32_t *distance = (int32_t*) malloc (size * sizeof(int32_t));
-
-    int pred[size];
-    int visited[size],count,mindistance,nextnode;
-
-    //pred[] stores the predecessor of each node
-    //count gives the number of nodes seen so far
-
-    //initialize pred[],distance[] and visited[]
+    //nextnode gives the node at minimum distance
     for(int i=0;i<size;i++)
-    {
-        distance[i]=distance_matrix[from][i];
-        pred[i]=from;
-        visited[i]=0;
-    }
+      if(distance[i]<mindistance&&!visited[i])
+      {
+        mindistance=distance[i];
+        nextnode=i;
+      }
 
-    distance[from]=0;
-    visited[from]=1;
-    count=1;
-
-    while(count<size-1)
-    {
-        mindistance=INF;
-
-        //nextnode gives the node at minimum distance
-        for(int i=0;i<size;i++)
-            if(distance[i]<mindistance&&!visited[i])
-            {
-                mindistance=distance[i];
-                nextnode=i;
-            }
-
-        //check if a better path exists through nextnode
-        visited[nextnode]=1;
-        for(int i=0;i<size;i++)
-            if(!visited[i])
-                if(mindistance+distance_matrix[nextnode][i]<distance[i])
-                {
-                    distance[i]=mindistance+distance_matrix[nextnode][i];
-                    pred[i]=nextnode;
-                }
-        count++;
-    }
-    return distance;
+    //check if a better path exists through nextnode
+    visited[nextnode]=1;
+    for(int i=0;i<size;i++)
+      if(!visited[i])
+        if(mindistance+distance_matrix[nextnode][i]<distance[i])
+        {
+          distance[i]=mindistance+distance_matrix[nextnode][i];
+          pred[i]=nextnode;
+        }
+    count++;
+  }
+  return distance;
 }
 
-void prepare_matrix(int32_t **graph_matrix, int32_t size) {
-    int i, j;
+void dijkstra_all(matrix graph_matrix, int32_t size) {
+  int32_t i;
 
-    for (i = 0; i < size; i++)
-        for (j = 0; j < size; j++)
-            graph_matrix[i][j] = (i != j && graph_matrix[i][j] == 0) ? INF : graph_matrix[i][j];
-}
-
-void dijkstra_all(int32_t **graph_matrix, int32_t size) {
-
-    for (int i = 0; i < size; i++)
-        graph_matrix[i] = dijkstra(graph_matrix, i, size);
-
-}
-
-void free_matrix(int32_t **matrix, int32_t size) {
-    int32_t i;
-
-    for (i = 0; i < size; i++)
-        free(matrix[i]);
-    free(matrix);
+  for (i = 0; i < size; i++)
+    graph_matrix[i] = dijkstra(graph_matrix, i, size);
 }
 
 int main(int argc, char* argv[]) {
-    FILE *graph_file;
-    int32_t size;
-    int32_t **distance_matrix, **graph_matrix;
+  FILE *graph_file;
+  int32_t size;
+  matrix graph_matrix;
 
-    if (argc != 2) {
-        printf("Wrong input\n");
-        printf("Usage: %s GRAPH_FILE\n", argv[0]);
-        return EXIT_FAILURE;
-    }
+  if (argc != 2) {
+    printf("Wrong input\n");
+    printf("Usage: %s GRAPH_FILE\n", argv[0]);
+    return EXIT_FAILURE;
+  }
 
-    graph_file = fopen(argv[1], "r");
-    if (graph_file == NULL) {
-        printf("Cannot open input file.\n");
-        return EXIT_FAILURE;
-    }
+  graph_file = fopen(argv[1], "r");
+  if (graph_file == NULL) {
+    printf("Cannot open input file.\n");
+    return EXIT_FAILURE;
+  }
 
-    if (fscanf(graph_file, "%d", &size) == EOF) {
-        printf("Input file is empty.\n");
-        return EXIT_FAILURE;
-    }
+  if (fscanf(graph_file, "%d", &size) == EOF) {
+    printf("Input file is empty.\n");
+    return EXIT_FAILURE;
+  }
 
-    graph_matrix = read_matrix(graph_file, size);
-    fclose(graph_file);
+  graph_matrix = read_matrix(graph_file, size);
+  prepare_matrix(graph_matrix, size);
+  dijkstra_all(graph_matrix, size);
 
-    prepare_matrix(graph_matrix, size);
-    dijkstra_all(graph_matrix, size);
-    print_result(graph_matrix, size);
+  print_matrix(graph_matrix, size);
 
-    free_matrix(graph_matrix, size);
+  fclose(graph_file);
+  free_matrix(graph_matrix, size);
 
-    return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
