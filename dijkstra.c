@@ -57,8 +57,9 @@ void dijkstra_all(matrix graph_matrix, int32_t size) {
 
 int main(int argc, char* argv[]) {
   FILE *graph_file;
+
   int32_t size;
-  matrix graph_matrix;
+  matrix graph_matrix, distance_matrix;
 
   if (argc != 2) {
     printf("Wrong input\n");
@@ -78,11 +79,12 @@ int main(int argc, char* argv[]) {
   }
 
   graph_matrix = read_matrix(graph_file, size);
-  dijkstra_all(graph_matrix, size);
-
-  print_matrix(graph_matrix, size);
-
   fclose(graph_file);
+  distance_matrix dijkstra_all(graph_matrix, size);
+
+  print_matrix(distance_matrix, size);
+
+  free_matrix(distance_matrix, size);
   free_matrix(graph_matrix, size);
 
   return EXIT_SUCCESS;
