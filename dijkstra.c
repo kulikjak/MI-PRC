@@ -46,13 +46,15 @@ int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
   return distance;
 }
 
-void dijkstra_all(matrix graph_matrix, int32_t size) {
+matrix dijkstra_all(matrix graph_matrix, int32_t size) {
   int32_t i;
 
   matrix distance_matrix = get_distance_matrix(graph_matrix, size);
 
   for (i = 0; i < size; i++)
-    graph_matrix[i] = dijkstra(distance_matrix, i, size);
+    distance_matrix[i] = dijkstra(distance_matrix, i, size);
+
+  return distance_matrix;
 }
 
 int main(int argc, char* argv[]) {
@@ -80,7 +82,7 @@ int main(int argc, char* argv[]) {
 
   graph_matrix = read_matrix(graph_file, size);
   fclose(graph_file);
-  distance_matrix dijkstra_all(graph_matrix, size);
+  distance_matrix = dijkstra_all(graph_matrix, size);
 
   print_matrix(distance_matrix, size);
 
