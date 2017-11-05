@@ -11,10 +11,6 @@ int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
   int pred[size];
   int visited[size],count,mindistance,nextnode;
 
-  //pred[] stores the predecessor of each node
-  //count gives the number of nodes seen so far
-
-  //initialize pred[],distance[] and visited[]
   for(int i=0;i<size;i++)
   {
     distance[i]=distance_matrix[from][i];
@@ -30,7 +26,6 @@ int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
   {
     mindistance=INF;
 
-    //nextnode gives the node at minimum distance
     for(int i=0;i<size;i++)
       if(distance[i]<mindistance&&!visited[i])
       {
@@ -38,7 +33,6 @@ int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
         nextnode=i;
       }
 
-    //check if a better path exists through nextnode
     visited[nextnode]=1;
     for(int i=0;i<size;i++)
       if(!visited[i])
@@ -55,8 +49,10 @@ int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
 void dijkstra_all(matrix graph_matrix, int32_t size) {
   int32_t i;
 
+  matrix distance_matrix = get_distance_matrix(graph_matrix, size);
+
   for (i = 0; i < size; i++)
-    graph_matrix[i] = dijkstra(graph_matrix, i, size);
+    graph_matrix[i] = dijkstra(distance_matrix, i, size);
 }
 
 int main(int argc, char* argv[]) {
@@ -82,7 +78,6 @@ int main(int argc, char* argv[]) {
   }
 
   graph_matrix = read_matrix(graph_file, size);
-  prepare_matrix(graph_matrix, size);
   dijkstra_all(graph_matrix, size);
 
   print_matrix(graph_matrix, size);
