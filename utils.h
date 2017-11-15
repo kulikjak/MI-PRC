@@ -5,14 +5,14 @@
 
 #define INF SHRT_MAX
 
-typedef int32_t** matrix;
+typedef int8_t** matrix;
 
 matrix allocate_matrix(int32_t size) {
   int32_t i;
 
-  matrix matrix = (int32_t**)malloc(size * sizeof(int32_t*));
+  matrix matrix = (int8_t**)malloc(size * sizeof(int8_t*));
   for (i = 0; i < size; i++)
-    matrix[i] = (int32_t*)malloc(size * sizeof(int32_t));
+    matrix[i] = (int8_t*)malloc(size * sizeof(int8_t));
 
   return matrix;
 }
@@ -52,9 +52,9 @@ void print_matrix(const matrix distance_matrix, int32_t size) {
   for (i = 0; i < size; i++) {
     for (j = 0; j < size; j++) {
       if (distance_matrix[i][j] == INF)
-        printf("%5s", "INF");
+        printf("%4s", "INF");
       else
-        printf("%5d", distance_matrix[i][j]);
+        printf("%4d", distance_matrix[i][j]);
     }
     printf("\n");
   }
