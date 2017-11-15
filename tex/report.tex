@@ -1,0 +1,61 @@
+\documentclass[11pt, fleqn]{article}
+\usepackage{graphicx}
+\usepackage{a4wide}
+\usepackage{float}
+\usepackage[top=3cm,bottom=3cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{algorithm}
+\usepackage{listings}
+\pagenumbering{arabic}
+
+%kodovani vstupu
+\usepackage[utf8]{inputenc}%latin2,windows-1250
+%podpora pro specificke znaky, napr. ceske
+\usepackage[T1]{fontenc}
+%podpora pro ceske deleni slov atd.
+\usepackage[czech]{babel}
+
+%dalsi moznosti zarovnani sloupcu v tabulkach
+\usepackage{array}
+%vkladani obrazku
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{subfig}
+
+\pdfminorversion=6
+
+
+\title{Floyd-Warshall algoritmus}
+\author{Jakub Kulík}
+
+\begin{document}
+\maketitle
+
+\section{Úvod}
+Floyd–Warshall algoritmus je algoritmus pro nalezení nejkratších cest v orientovaném grafu. Algoritmus v každé iteraci zkusí pro všechny dvojice uzlů nalézt nejkratší cestu náhledem do matice incidence. To dělá postupně $n$ krát, takže všechny existující cesty jsou postupně dopočítány. Pokud cesta mezi hranami neexistuje, bude na jejím místě v matici vzdáleností správná vzdálenost. Pokud cesta neexistuje, hodnota bude nastavená na nekonečno.
+
+Vzhledem k tomu, že se využívá matice sousednosti, nedá se algoritmus použít pro multi grafy. Algoritmus nemá problémy se záporně ohodnocenými hranamy, vrací ale nesprávné výsledky, pokud existují záporně ohodnocené cykly.
+
+\subsection{Implementace Floyd Warshall algoritmu}
+Základní verze algoritmu je velmi jednoduchá a přímočará. Pro dvoudimenziovální matici sousednosti nám stačí tři for cykly a jeden if.
+
+Algoritmus pracuje nad maticí vzdáleností, která má na začátku všechny vzdálenosti (kromě těch již známých) nastavené na nekonečno. Do této matice víše popsaným algoritmem postupně dopsisuje dopočítané vzdálenosti. Takto proběhne pro všechny možné cesty celkem $n$ krát, kde $n$ je počet uzlů v grafu.
+
+\subsection{OpenACC version}
+OpenACC verze algoritmu se neliší téměř vůbec od verze sekvenční - jediným rozdílem je přidání několik \lstinline{#pragma}.
+
+\lstinline{#pragma acc data copy(dm[0 : size][0 : size])}, zajistí překopírované dat na grafickou kartu (kompilátor ji přidá, pokud není explicitně zadána).
+
+\lstinline{#pragma acc parallel num_gangs(1024) vector_length(128)} určuje block běžící na grafické kartě s explicitně zadanými velikostmi gangů a vektoru.
+
+\lstinline{#pragma acc loop collapse(2)} říká acc, že následující for cyklus se má paralelizovat. Díky \lstinline{collapse(2)} jsou oba dva for cykly složené do jednoho a umožňují tím efektivnější provádění na grafické kartě.
+
+TODO
+
+Kapitola 2 (pro OpenACC)
+Popis optimalizací pro dosažení lineárního zrychlení
+Tabulkově a případně graficky zpracované naměřené hodnoty časové složitosti měřených instancí běhu (optimalizované implementace) programu s popisem instancí dat
+Analýza a hodnocení vlastností dané implementace programu (hlavně zrychlení pro různé počty gangů a workerů, porovnání s CPU verzí).
+
+
+\end{thebibliography}
+\end{document}
