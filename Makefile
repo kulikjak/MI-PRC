@@ -19,5 +19,6 @@ randomizer: randomizer.c utils.h
 
 clean:
 	rm -f floyd_warshal dijkstra randomizer acc_floyd_warshal
+	rm -f *.dwf *.pdb
 
 .PHONY: all floyd_warshal dijkstra randomizer acc_floyd_warshal clean
