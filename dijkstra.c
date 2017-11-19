@@ -1,17 +1,21 @@
-#include <stdlib.h>
+#include <omp.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "utils.h"
 
+double _start_in, _start_out;
+double _end_in, _end_out;
 
 int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
 
   int32_t *distance = (int32_t*) malloc (size * sizeof(int32_t));
-
+  int32_t i;
   int pred[size];
   int visited[size],count,mindistance,nextnode;
 
-  for(int i=0;i<size;i++)
+  for(i=0;i<size;i++)
   {
     distance[i]=distance_matrix[from][i];
     pred[i]=from;
@@ -21,12 +25,12 @@ int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
   distance[from]=0;
   visited[from]=1;
   count=1;
-
+ 
   while(count<size-1)
   {
     mindistance=INF;
 
-    for(int i=0;i<size;i++)
+    for(i=0;i<size;i++)
       if(distance[i]<mindistance&&!visited[i])
       {
         mindistance=distance[i];
@@ -34,7 +38,7 @@ int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
       }
 
     visited[nextnode]=1;
-    for(int i=0;i<size;i++)
+    for(i=0;i<size;i++)
       if(!visited[i])
         if(mindistance+distance_matrix[nextnode][i]<distance[i])
         {
@@ -46,14 +50,15 @@ int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
   return distance;
 }
 
-matrix dijkstra_all(matrix graph_matrix, int32_t size) {
+matrix dijkstra_all(matrix distance_matrix, int32_t size) {
   int32_t i;
 
-  matrix distance_matrix = get_distance_matrix(graph_matrix, size);
 
-  for (i = 0; i < size; i++)
-    distance_matrix[i] = dijkstra(distance_matrix, i, size);
+    _start_in = omp_get_wtime();  // clock();
+    for (i = 0; i < size; i++)
+      distance_matrix[i] = dijkstra(distance_matrix, i, size);
 
+    _end_in = omp_get_wtime();  // clock();
   return distance_matrix;
 }
 
@@ -81,13 +86,19 @@ int main(int argc, char* argv[]) {
   }
 
   graph_matrix = read_matrix(graph_file, size);
+  distance_matrix = get_distance_matrix(graph_matrix, size);
   fclose(graph_file);
-  distance_matrix = dijkstra_all(graph_matrix, size);
+  _start_out = omp_get_wtime();  // clock();
+  distance_matrix = dijkstra_all(distance_matrix, size);
+  _end_out = omp_get_wtime();  // clock();
 
-  print_matrix(distance_matrix, size);
+  /* print_matrix(distance_matrix, size); */
 
   free_matrix(distance_matrix, size);
   free_matrix(graph_matrix, size);
+
+  printf("== Time: %lf (without data copy)\n", _end_in - _start_in);
+  printf("== Time: %lf (with data copy)\n", _end_out - _start_out);
 
   return EXIT_SUCCESS;
 }
