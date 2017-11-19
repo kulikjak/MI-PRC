@@ -1,4 +1,4 @@
-CXX = gcc -O2
+CXX = gcc -fopenmp -O2
 PGXX = pgcc -acc -Minfo=acc -O2
 
 all: floyd_warshal dijkstra

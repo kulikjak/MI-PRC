@@ -5,8 +5,23 @@
 
 #include "utils.h"
 
+#define _CHECK_MATRICES
+
 double _start_in, _start_out;
 double _end_in, _end_out;
+
+matrix floyd_warshall_seq(const matrix dm, int32_t size) {
+  int32_t i, j, k;
+
+  for (k = 0; k < size; k++)
+    for (i = 0; i < size; i++)
+      for (j = 0; j < size; j++) {
+        dm[i][j] =
+            (dm[i][k] + dm[k][j] < dm[i][j]) ? dm[i][k] + dm[k][j] : dm[i][j];
+      }
+
+  return dm;
+}
 
 matrix floyd_warshall(const matrix dm, int32_t size) {
   int32_t i, j, k;
@@ -36,7 +51,7 @@ int main(int argc, char* argv[]) {
   int32_t size;
 
   FILE* graph_file;
-  matrix graph_matrix, distance_matrix;
+  matrix graph_matrix, distance_matrix, distance_matrix2;
 
   if (argc != 2) {
     printf("Wrong input\n");
@@ -61,6 +76,20 @@ int main(int argc, char* argv[]) {
   _start_out = omp_get_wtime();  // clock();
   distance_matrix = floyd_warshall(distance_matrix, size);
   _end_out = omp_get_wtime();  // clock();
+
+#ifdef _CHECK_MATRICES
+
+  printf("Checking, that parallel algorithm runs correctly\n");
+
+  distance_matrix2 = floyd_warshall_seq(distance_matrix, size);
+  if (compare_matrices(distance_matrix, distance_matrix2, size)) {
+    printf("Both parallel and serial result matrices match.\n");
+  } else {
+    printf("Serial and parallel result matrices are different.\n");
+    printf("Something is wrong!!!.\n");
+  }
+
+#endif
 
   /* print_matrix(distance_matrix, size); */
 
