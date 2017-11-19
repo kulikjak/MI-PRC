@@ -8,57 +8,55 @@
 double _start_in, _start_out;
 double _end_in, _end_out;
 
-int32_t *dijkstra(matrix distance_matrix, int32_t from, int32_t size) {
-
-  int32_t *distance = (int32_t*) malloc (size * sizeof(int32_t));
-  int32_t i;
-  int pred[size];
-  int visited[size],count,mindistance,nextnode;
-
-  for(i=0;i<size;i++)
+matrix dijkstra_all(matrix distance_matrix, int32_t size) {
+  #pragma acc data copy(distance_matrix[0 : size][0 : size])
   {
-    distance[i]=distance_matrix[from][i];
-    pred[i]=from;
-    visited[i]=0;
-  }
+    _start_in = omp_get_wtime();  // clock();
+    #pragma acc parallel num_gangs(1024) vector_length(128)
+    #pragma acc loop independent
+    int32_t from;
+    for (from = 0; from < size; from++) {
+      int32_t *distance = (int32_t*) malloc (size * sizeof(int32_t));
+      int32_t *visited = (int32_t*) malloc (size * sizeof(int32_t));
+      int32_t i, count, mindistance, nextnode;;
 
-  distance[from]=0;
-  visited[from]=1;
-  count=1;
- 
-  while(count<size-1)
-  {
-    mindistance=INF;
-
-    for(i=0;i<size;i++)
-      if(distance[i]<mindistance&&!visited[i])
-      {
-        mindistance=distance[i];
-        nextnode=i;
+      #pragma acc loop
+      for(i = 0; i < size; i++) {
+        distance[i] = distance_matrix[from][i];
+        visited[i] = 0;
       }
 
-    visited[nextnode]=1;
-    for(i=0;i<size;i++)
-      if(!visited[i])
-        if(mindistance+distance_matrix[nextnode][i]<distance[i])
-        {
-          distance[i]=mindistance+distance_matrix[nextnode][i];
-          pred[i]=nextnode;
+      distance[from] = 0;
+      visited[from] = 1;
+
+      #pragma acc loop
+      for(count = 1; count < size-1; count++) {
+        mindistance=INF;
+
+        #pragma acc loop
+        for(i = 0; i < size; i++) {
+          if(distance[i] < mindistance && !visited[i]) {
+            mindistance = distance[i];
+            nextnode = i;
+          }
         }
-    count++;
+
+        visited[nextnode] = 1;
+
+        #pragma acc loop
+        for(i = 0; i < size; i++) {
+          if(!visited[i]) {
+            if(mindistance + distance_matrix[nextnode][i] < distance[i]) {
+              #pragma acc atomic write
+              distance[i] = mindistance + distance_matrix[nextnode][i];
+            }
+          }
+        }
+      }
+      distance_matrix[i] = distance;
+    }
+      _end_in = omp_get_wtime();  // clock();
   }
-  return distance;
-}
-
-matrix dijkstra_all(matrix distance_matrix, int32_t size) {
-  int32_t i;
-
-
-    _start_in = omp_get_wtime();  // clock();
-    for (i = 0; i < size; i++)
-      distance_matrix[i] = dijkstra(distance_matrix, i, size);
-
-    _end_in = omp_get_wtime();  // clock();
   return distance_matrix;
 }
 
@@ -87,15 +85,16 @@ int main(int argc, char* argv[]) {
 
   graph_matrix = read_matrix(graph_file, size);
   distance_matrix = get_distance_matrix(graph_matrix, size);
-  fclose(graph_file);
+  
   _start_out = omp_get_wtime();  // clock();
   distance_matrix = dijkstra_all(distance_matrix, size);
   _end_out = omp_get_wtime();  // clock();
 
-  /* print_matrix(distance_matrix, size); */
+  print_matrix(distance_matrix, size);
 
   free_matrix(distance_matrix, size);
   free_matrix(graph_matrix, size);
+  fclose(graph_file);
 
   printf("== Time: %lf (without data copy)\n", _end_in - _start_in);
   printf("== Time: %lf (with data copy)\n", _end_out - _start_out);
