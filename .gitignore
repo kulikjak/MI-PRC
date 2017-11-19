@@ -1,4 +1,5 @@
 
+
 # Created by https://www.gitignore.io/api/clion
 
 ### CLion ###
@@ -75,3 +76,10 @@ a.out
 .idea/vcs.xml
 .idea/codeStyleSettings.xml
 .idea/
+
+
+.vscode
+
+*.dwf
+*.pdb
+*.exe
