@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef _CHECK_MATRICES
 
-  printf("Checking, that parallel algorithm runs correctly\n");
+  printf("Checking that parallel algorithm runs correctly\n");
 
   distance_matrix2 = floyd_warshall_seq(distance_matrix, size);
   if (compare_matrices(distance_matrix, distance_matrix2, size)) {
