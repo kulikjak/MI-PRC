@@ -5,14 +5,14 @@
 
 #define INF SHRT_MAX
 
-typedef int8_t** matrix;
+typedef int32_t** matrix;
 
 matrix allocate_matrix(int32_t size) {
   int32_t i;
 
-  matrix matrix = (int8_t**)malloc(size * sizeof(int8_t*));
+  matrix matrix = (int32_t**)malloc(size * sizeof(int32_t*));
   for (i = 0; i < size; i++)
-    matrix[i] = (int8_t*)malloc(size * sizeof(int8_t));
+    matrix[i] = (int32_t*)malloc(size * sizeof(int32_t));
 
   return matrix;
 }
