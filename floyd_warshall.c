@@ -88,6 +88,7 @@ int main(int argc, char* argv[]) {
     printf("Serial and parallel result matrices are different.\n");
     printf("Something is wrong!!!.\n");
   }
+  free_matrix(distance_matrix2, size);
 
 #endif
 
