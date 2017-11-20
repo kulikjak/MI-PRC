@@ -3,7 +3,7 @@ PGXX = pgcc -acc -Minfo=acc -O2
 
 all: floyd_warshall dijkstra
 
-acc: acc_floyd_warshal acc_dijkstra
+acc: acc_floyd_warshall acc_dijkstra
 
 floyd_warshall: floyd_warshall.c utils.h
 	$(CXX) floyd_warshall.c -o $@
