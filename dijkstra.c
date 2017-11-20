@@ -23,16 +23,16 @@ matrix dijkstra_all(matrix distance_matrix, int32_t size) {
         int32_t *visited = (int32_t *)malloc(size * sizeof(int32_t));
         int32_t i, count, mindistance, nextnode;
 
-        #pragma acc loop
+        #pragma acc loop seq
         for (i = 0; i < size; visited[i++] = 0) {}
 
         visited[from] = 1;
 
-        #pragma acc loop
+        #pragma acc loop seq
         for (count = 1; count < size - 1; count++) {
           mindistance = INF;
 
-          #pragma acc loop
+          #pragma acc loop seq
           for (i = 0; i < size; i++) {
             if (distance_matrix[from][i] < mindistance && !visited[i]) {
               mindistance = distance_matrix[from][i];
@@ -42,11 +42,10 @@ matrix dijkstra_all(matrix distance_matrix, int32_t size) {
 
           visited[nextnode] = 1;
 
-          #pragma acc loop
+          #pragma acc loop seq
           for (i = 0; i < size; i++) {
             if (!visited[i]) {
               if (mindistance + distance_matrix[nextnode][i] < distance_matrix[from][i]) {
-                #pragma acc atomic write
                 distance_matrix[from][i] = mindistance + distance_matrix[nextnode][i];
               }
             }
