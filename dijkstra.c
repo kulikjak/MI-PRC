@@ -53,14 +53,17 @@ matrix dijkstra_all(matrix distance_matrix, int32_t size) {
           }
         }
       }
-      distance_matrix[i] = distance;
+      free(visited);
+      free(distance_matrix[from]);
+
+      distance_matrix[from] = distance;
     }
       _end_in = omp_get_wtime();  // clock();
   }
   return distance_matrix;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   FILE *graph_file;
 
   int32_t size;
@@ -85,7 +88,7 @@ int main(int argc, char* argv[]) {
 
   graph_matrix = read_matrix(graph_file, size);
   distance_matrix = get_distance_matrix(graph_matrix, size);
-  
+
   _start_out = omp_get_wtime();  // clock();
   distance_matrix = dijkstra_all(distance_matrix, size);
   _end_out = omp_get_wtime();  // clock();
