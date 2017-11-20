@@ -69,6 +69,15 @@ void print_matrix(const matrix __mtx, int32_t __size) {
   }
 }
 
+void free_matrix(matrix __mtx, int32_t __size) {
+  int32_t i;
+
+  for (i = 0; i < __size; i++)
+    free(__mtx[i]);
+  free(__mtx);
+}
+
+
 bool compare_matrices(const matrix __a, const matrix __b, int32_t __size) {
   int32_t i, j;
 
@@ -82,12 +91,16 @@ bool compare_matrices(const matrix __a, const matrix __b, int32_t __size) {
   return true;
 }
 
-void free_matrix(matrix __mtx, int32_t __size) {
-  int32_t i;
+matrix floyd_warshall_seq(const matrix __dm, int32_t __size) {
+  int32_t i, j, k;
 
+  for (k = 0; k < __size; k++)
   for (i = 0; i < __size; i++)
-    free(__mtx[i]);
-  free(__mtx);
+  for (j = 0; j < __size; j++) {
+    __dm[i][j] = (__dm[i][k] + __dm[k][j] < __dm[i][j])
+                     ? __dm[i][k] + __dm[k][j] : __dm[i][j];
+  }
+  return __dm;
 }
 
 #endif

@@ -9,18 +9,6 @@
 double _start_in, _start_out;
 double _end_in, _end_out;
 
-matrix floyd_warshall_seq(const matrix dm, int32_t size) {
-  int32_t i, j, k;
-
-  for (k = 0; k < size; k++)
-    for (i = 0; i < size; i++)
-      for (j = 0; j < size; j++) {
-        dm[i][j] =
-            (dm[i][k] + dm[k][j] < dm[i][j]) ? dm[i][k] + dm[k][j] : dm[i][j];
-      }
-
-  return dm;
-}
 
 matrix dijkstra_all(matrix distance_matrix, int32_t size) {
   int32_t from;

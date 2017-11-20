@@ -10,33 +10,22 @@
 double _start_in, _start_out;
 double _end_in, _end_out;
 
-matrix floyd_warshall_seq(const matrix dm, int32_t size) {
+
+matrix floyd_warshall(const matrix __dm, int32_t __size) {
   int32_t i, j, k;
 
-  for (k = 0; k < size; k++)
-    for (i = 0; i < size; i++)
-      for (j = 0; j < size; j++) {
-        dm[i][j] =
-            (dm[i][k] + dm[k][j] < dm[i][j]) ? dm[i][k] + dm[k][j] : dm[i][j];
-      }
-
-  return dm;
-}
-
-matrix floyd_warshall(const matrix dm, int32_t size) {
-  int32_t i, j, k;
-
-  #pragma acc data copy(dm[0 : size][0 : size])
+  #pragma acc data copy(__dm[0 : __size][0 : __size])
   {
     _start_in = omp_get_wtime();  // clock();
     #pragma acc parallel num_gangs(1024) vector_length(128)
     {
-      for (k = 0; k < size; k++) {
+      for (k = 0; k < __size; k++) {
         #pragma acc loop collapse(2)
-        for (i = 0; i < size; i++) {
-          for (j = 0; j < size; j++) {
-            dm[i][j] = (dm[i][k] + dm[k][j] < dm[i][j]) ? dm[i][k] + dm[k][j]
-                                                        : dm[i][j];
+        for (i = 0; i < __size; i++) {
+          for (j = 0; j < __size; j++) {
+            __dm[i][j] = (__dm[i][k] + __dm[k][j] < __dm[i][j])
+                             ? __dm[i][k] + __dm[k][j]
+                             : __dm[i][j];
           }
         }
       }
@@ -44,14 +33,14 @@ matrix floyd_warshall(const matrix dm, int32_t size) {
     _end_in = omp_get_wtime();  // clock();
   }
 
-  return dm;
+  return __dm;
 }
 
 int main(int argc, char* argv[]) {
   int32_t size;
 
   FILE* graph_file;
-  matrix graph_matrix, distance_matrix, distance_matrix2;
+  matrix graph_mtx, dist_mtx, dist_mtx2;
 
   if (argc != 2) {
     printf("Wrong input\n");
@@ -70,33 +59,33 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  graph_matrix = read_matrix(graph_file, size);
-  distance_matrix = get_distance_matrix(graph_matrix, size);
+  graph_mtx = read_matrix(graph_file, size);
+  dist_mtx = get_distance_matrix(graph_mtx, size);
 
   _start_out = omp_get_wtime();  // clock();
-  distance_matrix = floyd_warshall(distance_matrix, size);
+  dist_mtx = floyd_warshall(dist_mtx, size);
   _end_out = omp_get_wtime();  // clock();
 
 #ifdef _CHECK_MATRICES
 
   printf("Checking that parallel algorithm runs correctly\n");
 
-  distance_matrix2 = get_distance_matrix(graph_matrix, size);
-  distance_matrix2 = floyd_warshall_seq(distance_matrix2, size);
-  if (compare_matrices(distance_matrix, distance_matrix2, size)) {
+  dist_mtx2 = get_distance_matrix(graph_mtx, size);
+  dist_mtx2 = floyd_warshall_seq(dist_mtx2, size);
+  if (compare_matrices(dist_mtx, dist_mtx2, size)) {
     printf("Both parallel and serial result matrices match.\n");
   } else {
     printf("Serial and parallel result matrices are different.\n");
     printf("Something is wrong!!!.\n");
   }
-  free_matrix(distance_matrix2, size);
+  free_matrix(dist_mtx2, size);
 
 #endif
 
-  /* print_matrix(distance_matrix, size); */
+  /* print_matrix(dist_mtx, size); */
 
-  free_matrix(graph_matrix, size);
-  free_matrix(distance_matrix, size);
+  free_matrix(graph_mtx, size);
+  free_matrix(dist_mtx, size);
   fclose(graph_file);
 
   printf("== Time: %lf (without data copy)\n", _end_in - _start_in);
