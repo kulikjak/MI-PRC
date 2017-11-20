@@ -4,8 +4,23 @@
 #include <stdlib.h>
 #include "utils.h"
 
+#define _CHECK_MATRICES
+
 double _start_in, _start_out;
 double _end_in, _end_out;
+
+matrix floyd_warshall_seq(const matrix dm, int32_t size) {
+  int32_t i, j, k;
+
+  for (k = 0; k < size; k++)
+    for (i = 0; i < size; i++)
+      for (j = 0; j < size; j++) {
+        dm[i][j] =
+            (dm[i][k] + dm[k][j] < dm[i][j]) ? dm[i][k] + dm[k][j] : dm[i][j];
+      }
+
+  return dm;
+}
 
 matrix dijkstra_all(matrix distance_matrix, int32_t size) {
   int32_t from;
@@ -61,7 +76,7 @@ int main(int argc, char *argv[]) {
   FILE *graph_file;
 
   int32_t size;
-  matrix graph_matrix, distance_matrix;
+  matrix graph_matrix, distance_matrix, distance_matrix2;
 
   if (argc != 2) {
     printf("Wrong input\n");
@@ -88,6 +103,24 @@ int main(int argc, char *argv[]) {
   _end_out = omp_get_wtime();  // clock();
 
   // print_matrix(distance_matrix, size);
+
+
+#ifdef _CHECK_MATRICES
+
+  printf("Checking that parallel algorithm runs correctly\n");
+
+  distance_matrix2 = get_distance_matrix(graph_matrix, size);
+  distance_matrix2 = floyd_warshall_seq(distance_matrix2, size);
+  if (compare_matrices(distance_matrix, distance_matrix2, size)) {
+    printf("Both parallel and serial result matrices match.\n");
+  } else {
+    printf("Serial and parallel result matrices are different.\n");
+    printf("Something is wrong!!!.\n");
+  }
+  free_matrix(distance_matrix2, size);
+
+#endif
+
 
   free_matrix(distance_matrix, size);
   free_matrix(graph_matrix, size);
