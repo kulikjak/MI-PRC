@@ -2,6 +2,7 @@
 #define __UTILS__
 
 #include <limits.h>
+#include <string.h>
 #include <stdbool.h>
 
 #define INF SHRT_MAX
@@ -16,6 +17,13 @@ matrix allocate_matrix(int32_t __size) {
     matrix[i] = (int32_t*)malloc(__size * sizeof(int32_t));
 
   return matrix;
+}
+
+void copy_matrix(matrix __desc, const matrix __src, int32_t __size) {
+  int32_t i;
+
+  for (i = 0; i < __size; i++)
+    memcpy(__desc[i], __src[i], __size);
 }
 
 matrix get_distance_matrix(const matrix __graph, int32_t __size) {
@@ -65,8 +73,12 @@ bool compare_matrices(const matrix __a, const matrix __b, int32_t __size) {
   int32_t i, j;
 
   for (i = 0; i < __size; i++)
-    for (j = 0; j < __size; j++)
-      if (__a[i][j] != __b[i][j]) return false;
+    for (j = 0; j < __size; j++) {
+      if (__a[i][j] != __b[i][j]) {
+        printf("%d %d %d %d\n", __a[i][j], __b[i][j], i, j);
+        return false;
+      }
+    }
   return true;
 }
 
