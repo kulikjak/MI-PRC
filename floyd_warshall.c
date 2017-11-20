@@ -81,13 +81,15 @@ int main(int argc, char* argv[]) {
 
   printf("Checking that parallel algorithm runs correctly\n");
 
-  distance_matrix2 = floyd_warshall_seq(distance_matrix, size);
+  distance_matrix2 = get_distance_matrix(graph_matrix, size);
+  distance_matrix2 = floyd_warshall_seq(distance_matrix2, size);
   if (compare_matrices(distance_matrix, distance_matrix2, size)) {
     printf("Both parallel and serial result matrices match.\n");
   } else {
     printf("Serial and parallel result matrices are different.\n");
     printf("Something is wrong!!!.\n");
   }
+  free_matrix(distance_matrix2, size);
 
 #endif
 
