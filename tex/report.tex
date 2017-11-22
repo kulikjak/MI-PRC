@@ -51,10 +51,49 @@ Hledání nejkratších cest v grafu je relativně častý problém a proto na n
 
 Přiložená implementace čte grafy s unifikovanou cenou cesty 1, nicméně implementace algoritmů samotných umí bez jakékoliv změny pracovat i s jinou cenou hran.
 
-\section{Dijkkstrův algoritmus}
+\section{Dijkstrův algoritmus}
 
-TODO
+Dijkstrův algoritmus slouží pro nalezení nejkratších cest v~grafu pro jeden vrchol grafu.
 
+Algoritmus pracuje s~maticí přechodů, která neobsahuje záporné hrany.
+
+\subsection{Implementace Dijkstrova algoritmu}
+Základní verze algoritmu je velmi jednoduchá a přímočará. Pro dvoudimenziovální matici sousednosti nám stačí tři for cykly a jeden if.
+
+Algoritmus pracuje nad maticí vzdáleností, která má na začátku všechny vzdálenosti (kromě těch již známých) nastavené na nekonečno. Do této matice víše popsaným algoritmem postupně dopsisuje dopočítané vzdálenosti. Takto postupně zvětšuje počet meziuzlů (celkem $n$ krát, kde $n$ je počet uzlů v grafu), až dopočítá všechny možné cesty mezi uzly.
+
+\subsection{OpenACC version}
+OpenACC verze algoritmu se neliší téměř vůbec od verze sekvenční - jediným rozdílem je přidání několik \lstinline{#pragma}.
+
+\lstinline{#pragma acc data copy(dm[0 : size][0 : size])}, zajistí překopírované dat na grafickou kartu a zase zpátky.
+
+\lstinline{#pragma acc parallel} určuje block běžící na grafické kartě.
+
+\lstinline{#pragma acc loop independent} říká acc, že jednotlivé běhy následujícího for cyklu jsou na sobě nezávislé a proto se mohou paralelizovat.
+
+\lstinline{#pragma acc loop} říká acc, že následující for cyklus se má paralelizovat a že si sám má zjistit zavislosti.
+
+
+\subsection{měření OpenACC verze programu}
+
+Měření Dijkkstrova algoritmu jsou pro CPU provedeny na Intel Core i5-5200U CPU (dvě jádra s HyperThreadingem - 2.2GHz, až 2.7GHz with TurboBoost) s 16GB DDR4 RAM. GPU použité u OpenACC verzí je nVidia GeForce 480 na školním serveru star. Matice (grafy) použité pro všechna měření jsou náhodně generovány generátorem přiloženém k našemu zadání. Matice jsou velikostí 100 až 2500 s průměrným stupněm uzlu 30.
+
+Měření na každém grafu je provedené třikrát a použité jsou zprůměrované hodnoty.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.7\linewidth]{../results/Dijkstra.png}
+  \captionof{figure}{Porovnání různách verzí Dijkstry}
+  \label{fig:fw1}
+\end{figure}
+
+Poznámka: Průměrná stupeň uzlu grafu nemá na algoritmus žádný vliv, protože se stejně prochází postupně všechny iterace bez ohledu na to, jak samotný graf vypadá. Jediný malý rozdíl může být v přípdě velmi řídkých grafů, kde budu minimálně zapisovat do paměti, nicméně to pro nás zde není podstatné.
+
+Z naměřených dat je vidět, že zrychlení není až tak velké jak by se očekávalo.
+U menších velikosti grafů (do 1000) je vidět že kopírování dat trvá déle než samotný výpočet a také,
+že kopírování je je přibližně vždy stejné a nezávísí tolik na velikosti matice.
+Dálě je z grafu vidět, že CPU verze je pro menší instance rychlejší a to hlavně z toho důvodu,
+že režie spouštění kernelu a nakopírování dat na grafické kartě převyšuje zisky nasledně velmi rychlého kernelu (viz. graf \ref{fig:fw1}).
 
 
 \section{algoritmus Floyd-Warshall}
@@ -90,7 +129,7 @@ Měření na každém grafu je provedené třikrát a použité jsou zprůměrov
   \centering
   \includegraphics[width=.7\linewidth]{../results/Floyd_Warshall.pdf}
   \captionof{figure}{Porovnání různách verzí Floyd Warshalla}
-  \label{fig:fw1}
+  \label{fig:fw3}
 \end{figure}
 
 Poznámka: Průměrná stupeň uzlu grafu nemá na algoritmus žádný vliv, protože se stejně prochází postupně všechny iterace bez ohledu na to, jak samotný graf vypadá. Jediný malý rozdíl může být v přípdě velmi řídkých grafů, kde budu minimálně zapisovat do paměti, nicméně to pro nás zde není podstatné.
@@ -104,8 +143,8 @@ Pro větší grafy se tato čísla mohou lišit a proto je třeba optimální na
 \begin{table}[tbp]
   \centering
   \caption{Výkon dle velikosti vektoru a počtu gangů}
-  \label{fig:fw2}
-  \def\arraystretch{2}
+  \label{fig:fw4}
+  %\def\arraystretch{2}
   \begin{tabular}{llccccc}
     gangs / vector\_size & 16 & 32 & 64 & 128 & 192 & 256 \\
     \rowcolor[HTML]{ECF4FF} 
