@@ -84,16 +84,12 @@ Měření na každém grafu je provedené třikrát a použité jsou zprůměrov
   \centering
   \includegraphics[width=.7\linewidth]{../results/Dijkstra.png}
   \captionof{figure}{Porovnání různách verzí Dijkstry}
-  \label{fig:fw1}
+  \label{fig:d1}
 \end{figure}
 
 Poznámka: Průměrná stupeň uzlu grafu nemá na algoritmus žádný vliv, protože se stejně prochází postupně všechny iterace bez ohledu na to, jak samotný graf vypadá. Jediný malý rozdíl může být v přípdě velmi řídkých grafů, kde budu minimálně zapisovat do paměti, nicméně to pro nás zde není podstatné.
 
-Z naměřených dat je vidět, že zrychlení není až tak velké jak by se očekávalo.
-U menších velikosti grafů (do 1000) je vidět že kopírování dat trvá déle než samotný výpočet a také,
-že kopírování je je přibližně vždy stejné a nezávísí tolik na velikosti matice.
-Dálě je z grafu vidět, že CPU verze je pro menší instance rychlejší a to hlavně z toho důvodu,
-že režie spouštění kernelu a nakopírování dat na grafické kartě převyšuje zisky nasledně velmi rychlého kernelu (viz. graf \ref{fig:fw1}).
+Z naměřených dat je vidět, že zrychlení není až tak velké jak by se očekávalo. U menších velikosti grafů (do 1000) je vidět že kopírování dat trvá déle než samotný výpočet a také, že kopírování je je přibližně vždy stejné a nezávísí tolik na velikosti matice. Dálě je z grafu vidět, že CPU verze je pro menší instance rychlejší a to hlavně z toho důvodu, že režie spouštění kernelu a nakopírování dat na grafické kartě převyšuje zisky nasledně velmi rychlého kernelu (viz. graf \ref{fig:d1}).
 
 
 \section{algoritmus Floyd-Warshall}
@@ -129,7 +125,7 @@ Měření na každém grafu je provedené třikrát a použité jsou zprůměrov
   \centering
   \includegraphics[width=.7\linewidth]{../results/Floyd_Warshall.pdf}
   \captionof{figure}{Porovnání různách verzí Floyd Warshalla}
-  \label{fig:fw3}
+  \label{fig:fw1}
 \end{figure}
 
 Poznámka: Průměrná stupeň uzlu grafu nemá na algoritmus žádný vliv, protože se stejně prochází postupně všechny iterace bez ohledu na to, jak samotný graf vypadá. Jediný malý rozdíl může být v přípdě velmi řídkých grafů, kde budu minimálně zapisovat do paměti, nicméně to pro nás zde není podstatné.
@@ -143,8 +139,8 @@ Pro větší grafy se tato čísla mohou lišit a proto je třeba optimální na
 \begin{table}[tbp]
   \centering
   \caption{Výkon dle velikosti vektoru a počtu gangů}
-  \label{fig:fw4}
-  %\def\arraystretch{2}
+  \label{fig:fw2}
+  \def\arraystretch{2}
   \begin{tabular}{llccccc}
     gangs / vector\_size & 16 & 32 & 64 & 128 & 192 & 256 \\
     \rowcolor[HTML]{ECF4FF} 
