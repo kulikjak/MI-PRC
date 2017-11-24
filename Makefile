@@ -1,5 +1,5 @@
 CXX = gcc -fopenmp -O2
-PGXX = pgcc -acc -Minfo=acc -O2
+PGXX = pgcc -acc -ta=nvidia -Minfo=acc -O0
 
 all: floyd_warshall dijkstra
 
