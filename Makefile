@@ -5,6 +5,12 @@ all: floyd_warshall dijkstra
 
 acc: acc_floyd_warshall acc_dijkstra
 
+
+fw: floyd_warshall
+
+acc_fw: acc_floyd_warshall
+
+
 floyd_warshall: floyd_warshall.c utils.h
 	$(CXX) floyd_warshall.c -o $@
 
@@ -24,4 +30,4 @@ clean:
 	rm -f floyd_warshall dijkstra randomizer acc_floyd_warshall acc_dijkstra
 	rm -f *.dwf *.pdb
 
-.PHONY: all floyd_warshall dijkstra randomizer acc_floyd_warshall acc_dijkstra clean
+.PHONY: all clean
