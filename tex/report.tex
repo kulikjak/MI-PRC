@@ -106,7 +106,11 @@ Algoritmus pracuje nad maticí vzdáleností, která má na začátku všechny v
 
 
 \subsection{OpenACC version}
-OpenACC verze algoritmu se neliší téměř vůbec od verze sekvenční - jediným rozdílem je přidání několik \lstinline{#pragma}.
+OpenACC verze algoritmu se neliší téměř vůbec od verze sekvenční.
+
+OpenACC verze se ve skutečnosti liší relativně hodně, protože potřebuje lehce přeskládat pořadí provádění a tedy změnit algoritmus. Tzv. blocked algoritmus rozdělí celou matici na bloky (v našem případě o velikosti 1x1) a poté pro každý blok na diagonále nejprve spočíta fw pro řádek a sloupec (ve kterém blok je) s $k$ nastaveným na blok a poté dopočítá všechny ostatní ($k$ je opět nastavené na blok). Tímto způsobem můžeme paralelizovat jednotlivé části bez problémů se synchronizací.
+
+Pro optimálnější běh algoritmu jsou oba dva for cykly pro řádky a sloupce sjednocené do jednoho kernelu a předpočítány pro celou matici (pro každý blok na diagonále). Nicméně tato část je relativně výpočetně nenáročná a proto není důležitá. Hlavní část má paralelizované dva cykly - pro každý blok se kernel spouští znovu z důvodu časových závislostí. V naši implementaci počítá poslední část opět úplně všechna pole a ne jen ta nedopočítaná. Důvoduem je, že přidávání podmínek by nedělalo paralelnímu provádění moc dobře a zbytečně by ho zpomalovalo. Dopočítat znovu všechno (již vypočítané bloky se druhým průchodem nezmění) nám zajistí rychlejší provedení. Zároveň se jedná jen o malou část výpočtu a není s ní tedy moc problém.
 
 \lstinline{#pragma acc data copy(dm[0 : size][0 : size])}, zajistí překopírované dat na grafickou kartu (kompilátor ji přidá, pokud není explicitně zadána).
 
@@ -130,11 +134,13 @@ Měření na každém grafu je provedené třikrát a použité jsou zprůměrov
 
 Poznámka: Průměrná stupeň uzlu grafu nemá na algoritmus žádný vliv, protože se stejně prochází postupně všechny iterace bez ohledu na to, jak samotný graf vypadá. Jediný malý rozdíl může být v přípdě velmi řídkých grafů, kde budu minimálně zapisovat do paměti, nicméně to pro nás zde není podstatné.
 
-Z naměřených dat je vidět, že většina času výpočtu na grafické kartě je zabraná kopírováním dat z a do grafické karty. Samotný výpočet je z pravidla pouze zlomkem času. Další věcí, tkerá je vidět z grafů je, že CPU verze je pro menší instance rychlejší a to hlavně z toho důvodu, že režie spouštění kernelu na grafické kartě převyšuje zisky nasledně velmi rychlého kernelu (viz. graf \ref{fig:fw1}).
+Z naměřených dat je vidět, že většina času výpočtu na grafické kartě je zabraná kopírováním dat z a do grafické karty. Samotný výpočet je z pravidla pouze zlomkem času. Další věcí, která je vidět z grafů je, že CPU verze je pro menší instance rychlejší a to hlavně z toho důvodu, že režie spouštění kernelu na grafické kartě převyšuje zisky nasledně velmi rychlého kernelu (viz. graf \ref{fig:fw1}). V grafu jsou vidět obě verze sekvenčního algoritmu, které jsou výkonostně srovnatelné (i přesto, že block verze počítá také některé hodnoty dvakrát).
 
 Pro nalezení optimálního nastaení algoritmu bylo vyzkoušeno několik různých konfigurací počtu gangů a velikostí vektorů nad grafem o velikosti 1000 (viz. tabulka \ref{fig:fw2}). Z výsledné tabulky je vidět, že příliš malé vektory způsobují veliké zpomalení algoritmu (velikost 512 není již v tabulce, nicméně algoritmus tam opět zpomaluje). Počet gangů nemění performace algoritmu tolik.
 
 Pro větší grafy se tato čísla mohou lišit a proto je třeba optimální nastavení vždy hledat pro konkrétní velikosti grafů.
+
+Pozorování: Pokud se zadá velikost vektoru například 65535, vypíše kompilátor, že jsou vektory moc veliké a ignoruje je tedy, nicméně výsledný kód je stále o dost zrychlený a to až 100krát oproti vektorům velikosti 128. Nicméně výsledky jsou poté občas opět špatně. 
 
 \begin{table}[tbp]
   \centering
