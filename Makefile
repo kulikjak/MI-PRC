@@ -33,11 +33,8 @@ dijkstra: dijkstra.c utils.h
 acc_dijkstra: dijkstra.c utils.h
 	$(PGXX) dijkstra.c -o $@
 
-randomizer: randomizer.c utils.h
-	$(CXX) $^ -o $@
-
 clean:
-	rm -f floyd_warshall dijkstra randomizer acc_floyd_warshall acc_dijkstra cuda_floyd_warshall
+	rm -f floyd_warshall dijkstra acc_floyd_warshall acc_dijkstra cuda_floyd_warshall
 	rm -f *.dwf *.pdb
 
 .PHONY: all clean
