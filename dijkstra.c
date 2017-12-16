@@ -44,7 +44,7 @@ matrix dijkstra_all(matrix distance_matrix, int32_t size) {
 
           #pragma acc loop seq
           for (i = 0; i < size; i++) {
-            if (!visited[i]) {
+            if (!visited[i] && mindistance < INF) {
               if (mindistance + distance_matrix[nextnode][i] < distance_matrix[from][i]) {
                 distance_matrix[from][i] = mindistance + distance_matrix[nextnode][i];
               }
