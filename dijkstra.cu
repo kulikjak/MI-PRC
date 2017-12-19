@@ -4,7 +4,7 @@
 
 #include "cuda_utils.h"
 
-//#define _CHECK_MATRICES
+#define _CHECK_MATRICES
 
 #define TILE_SIZE 32
 #define LOG_TILE_SIZE 5
@@ -13,8 +13,7 @@ clock_t _start_in, _start_out;
 clock_t _end_in, _end_out;
 
 // Kernel for dijkstra
-__global__ void dijsktra( matrix __dm, int __size)
-{
+__global__ void dijsktra( matrix __dm, int __size) {
   int s = blockIdx.x * blockDim.x + threadIdx.x; // pozice na radku
   if(s >= __size) 
     return;
@@ -36,8 +35,6 @@ __global__ void dijsktra( matrix __dm, int __size)
       }
     }
 
-    printf("ahoj %d \n", mindistance);
-
     visited[nextnode] = 1;
 
     for (i = 0; i < __size; i++) {
@@ -52,9 +49,11 @@ __global__ void dijsktra( matrix __dm, int __size)
 }
 
 void run_algorithm(matrix __dm, int32_t __size) {
-  dijsktra<<<ceil(__size / 1024), 1024>>>(__dm, __size);
-  cudaDeviceSynchronize();
-  cudaDeviceReset();
+  int32_t a = ceil(__size / 1024.0f);
+  printf("Running dijkstra! %d\n", a);
+  dijsktra<<<a, 1024>>>(__dm, __size);
+  HANDLE_ERROR(cudaDeviceSynchronize());
+  //cudaDeviceReset();
 }
 
 int main(int argc, char* argv[]) {
@@ -111,7 +110,7 @@ int main(int argc, char* argv[]) {
 
 #endif
 
-  print_matrix(hostMtx, __size);
+  //print_matrix(hostMtx, __size);
 
   free_matrix_GPU(devMtx, __size);
 
