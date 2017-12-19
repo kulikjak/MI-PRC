@@ -21,7 +21,7 @@ __global__ void dijsktra( matrix __dm, int __size) {
   int32_t i, count, mindistance, nextnode;
   int32_t *visited = (int32_t*)malloc(__size * sizeof(int32_t));
   
-  for (i = 0; i < __size; visited[i++] = 0) {}
+  memset(visited, 0, __size * sizeof(int32_t));
 
   visited[s] = 0;
 
