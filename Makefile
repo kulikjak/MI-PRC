@@ -6,7 +6,7 @@ all: floyd_warshall dijkstra
 
 acc: acc_floyd_warshall acc_dijkstra
 
-cuda: cuda_floyd_warshall
+cuda: cuda_floyd_warshall cuda_dijkstra
 
 
 
@@ -47,8 +47,11 @@ dijkstra: dijkstra.c utils.h
 acc_dijkstra: dijkstra.c utils.h
 	$(PGXX) dijkstra.c -o $@
 
+cuda_dijkstra: dijkstra.cu cuda_utils.h
+    $(NVXX) dijkstra.cu -o $@
+
 clean:
-	rm -f floyd_warshall dijkstra acc_floyd_warshall acc_dijkstra cuda_floyd_warshall
+	rm -f floyd_warshall dijkstra acc_floyd_warshall acc_dijkstra cuda_floyd_warshall cuda_dijkstra
 	rm -f *.dwf *.pdb
 
 .PHONY: all clean
