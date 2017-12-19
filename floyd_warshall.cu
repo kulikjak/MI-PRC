@@ -5,6 +5,7 @@
 #include "cuda_utils.h"
 
 //#define _CHECK_MATRICES
+//#deinfe _SHARED
 
 #define TILE_SIZE 32
 #define LOG_TILE_SIZE 5
@@ -90,7 +91,7 @@ __global__ void kernel_double_dependent_blocks(matrix __dm, int32_t __size,
 
 // Much more clever kernel for double depenent blocks
 __global__ void kernel_sm_double_dependent_blocks(matrix __dm, int32_t __size,
-                                                  int32_t __b, int32_t k) {
+                                                  int32_t __b) {
   // TODO
 }
 
@@ -126,12 +127,17 @@ void run_algorithm(matrix __dm, int32_t __size) {
       HANDLE_ERROR(cudaDeviceSynchronize());
     }
 
-    // double dependent blocks
+// double dependent blocks
+#ifndef _SHARED
     for (k = b * s; k < (b + 1) * s; k++) {
       if (k >= __size) break;
       kernel_double_dependent_blocks<<<grid2D, tile2D>>>(__dm, __size, b, k);
       HANDLE_ERROR(cudaDeviceSynchronize());
     }
+#else
+    kernel_sm_double_dependent_blocks<<<grid2D, tile2D>>>(__dm, __size, b);
+    HANDLE_ERROR(cudaDeviceSynchronize());
+#endif
   }
 }
 
