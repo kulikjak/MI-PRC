@@ -9,17 +9,21 @@
 
 typedef int32_t** matrix;
 
+static void HandleError(cudaError_t err, const char* file, int line) {
+  if (err != cudaSuccess) {
+    printf("%s in %s at line %d\n", cudaGetErrorString(err), file, line);
+    exit(EXIT_FAILURE);
+  }
+}
+
+#define HANDLE_ERROR(err) (HandleError(err, __FILE__, __LINE__))
+
 matrix allocate_matrix_CPU(int32_t __size) {
   int32_t i;
-  // matrix mtx;
 
   matrix mtx = (int32_t**)malloc(__size * sizeof(int32_t*));
   for (i = 0; i < __size; i++)
     mtx[i] = (int32_t*)malloc(__size * sizeof(int32_t));
-
-  /*cudaHostAlloc(&mtx, __size * sizeof(*mtx), cudaHostAllocDefault);
-  for (i = 0; i < __size; i++)
-    cudaHostAlloc(&mtx[i], __size * sizeof(*mtx[i]), cudaHostAllocDefault);*/
 
   return mtx;
 }
@@ -29,18 +33,19 @@ matrix allocate_and_init_matrix_GPU(const matrix __hostMtx, int32_t __size) {
   int32_t* ptr;
   matrix devMtx;
 
-  cudaMalloc(&devMtx, __size * sizeof(*devMtx));
+  HANDLE_ERROR(cudaMalloc(&devMtx, __size * sizeof(*devMtx)));
 
   for (i = 0; i < __size; i++) {
-    cudaMalloc(&ptr, __size * sizeof(*ptr));
+    HANDLE_ERROR(cudaMalloc(&ptr, __size * sizeof(*ptr)));
 
     // copy data from CPU to GPU if matrix is given
     if (__hostMtx)
-      cudaMemcpy(ptr, __hostMtx[i], __size * sizeof(*ptr),
-                 cudaMemcpyHostToDevice);
+      HANDLE_ERROR(cudaMemcpy(ptr, __hostMtx[i], __size * sizeof(*ptr),
+                              cudaMemcpyHostToDevice));
 
     // copy pointer to this row to GPU matrix
-    cudaMemcpy(&devMtx[i], &ptr, sizeof(ptr), cudaMemcpyHostToDevice);
+    HANDLE_ERROR(
+        cudaMemcpy(&devMtx[i], &ptr, sizeof(ptr), cudaMemcpyHostToDevice));
   }
 
   return devMtx;
@@ -52,12 +57,13 @@ void copy_CPU_to_GPU(const matrix __hostMtx, matrix __devMtx, int32_t __size) {
   int32_t** dev_line = (int32_t**)malloc(__size * sizeof(int32_t*));
 
   // copy all GPU line pointers to CPU
-  cudaMemcpy(dev_line, __devMtx, __size * sizeof(*__devMtx),
-             cudaMemcpyDeviceToHost);
+  HANDLE_ERROR(cudaMemcpy(dev_line, __devMtx, __size * sizeof(*__devMtx),
+                          cudaMemcpyDeviceToHost));
   for (i = 0; i < __size; i++)
     // copy data to GPU
-    cudaMemcpy(dev_line[i], __hostMtx[i], __size * sizeof(*dev_line[i]),
-               cudaMemcpyHostToDevice);
+    HANDLE_ERROR(cudaMemcpy(dev_line[i], __hostMtx[i],
+                            __size * sizeof(*dev_line[i]),
+                            cudaMemcpyHostToDevice));
 
   free(dev_line);
 }
@@ -68,12 +74,13 @@ void copy_GPU_to_CPU(matrix __hostMtx, const matrix __devMtx, int32_t __size) {
   int32_t** dev_line = (int32_t**)malloc(__size * sizeof(int32_t*));
 
   // copy all GPU line pointers to CPU
-  cudaMemcpy(dev_line, __devMtx, __size * sizeof(*__devMtx),
-             cudaMemcpyDeviceToHost);
+  HANDLE_ERROR(cudaMemcpy(dev_line, __devMtx, __size * sizeof(*__devMtx),
+                          cudaMemcpyDeviceToHost));
   for (i = 0; i < __size; i++)
     // copy data to CPU
-    cudaMemcpy(__hostMtx[i], dev_line[i], __size * sizeof(*dev_line[i]),
-               cudaMemcpyDeviceToHost);
+    HANDLE_ERROR(cudaMemcpy(__hostMtx[i], dev_line[i],
+                            __size * sizeof(*dev_line[i]),
+                            cudaMemcpyDeviceToHost));
 
   free(dev_line);
 }
@@ -156,9 +163,7 @@ matrix floyd_warshall_seq(const matrix __dm, int32_t __size) {
 void free_matrix_CPU(matrix __mtx, int32_t __size) {
   int32_t i;
 
-  for (i = 0; i < __size; i++)  // cudaFreeHost(__mtx[i]);
-    free(__mtx[i]);
-  // cudaFreeHost(__mtx);
+  for (i = 0; i < __size; i++) free(__mtx[i]);
   free(__mtx);
 }
 
@@ -168,10 +173,11 @@ void free_matrix_GPU(matrix __mtx, int32_t __size) {
 
   for (i = 0; i < __size; i++) {
     // copy devPtr to host pc and free it (cannot be done directly)
-    cudaMemcpy(&ptr, &__mtx[i], sizeof(ptr), cudaMemcpyDeviceToHost);
-    cudaFree(ptr);
+    HANDLE_ERROR(
+        cudaMemcpy(&ptr, &__mtx[i], sizeof(ptr), cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaFree(ptr));
   }
-  cudaFree(__mtx);
+  HANDLE_ERROR(cudaFree(__mtx));
 }
 
 #endif

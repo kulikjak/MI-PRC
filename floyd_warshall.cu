@@ -108,14 +108,14 @@ void run_algorithm(matrix __dm, int32_t __size) {
     for (k = b * s; k < (b + 1) * s; k++) {
       if (k >= __size) break;
       kernel_independent_blocks<<<s, s>>>(__dm, __size, b, k);
-      cudaDeviceSynchronize();
+      HANDLE_ERROR(cudaDeviceSynchronize());
     }
 
     // i-aligned singly depenent blocks
     for (k = b * s; k < (b + 1) * s; k++) {
       if (k >= __size) break;
       kernel_line_dependent_blocks<<<tile_count, tile2D>>>(__dm, __size, b, k);
-      cudaDeviceSynchronize();
+      HANDLE_ERROR(cudaDeviceSynchronize());
     }
 
     // j-aligned singly depenent blocks
@@ -123,14 +123,14 @@ void run_algorithm(matrix __dm, int32_t __size) {
       if (k >= __size) break;
       kernel_column_dependent_blocks<<<tile_count, tile2D>>>(__dm, __size, b,
                                                              k);
-      cudaDeviceSynchronize();
+      HANDLE_ERROR(cudaDeviceSynchronize());
     }
 
     // double dependent blocks
     for (k = b * s; k < (b + 1) * s; k++) {
       if (k >= __size) break;
       kernel_double_dependent_blocks<<<grid2D, tile2D>>>(__dm, __size, b, k);
-      cudaDeviceSynchronize();
+      HANDLE_ERROR(cudaDeviceSynchronize());
     }
   }
 }
