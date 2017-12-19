@@ -20,8 +20,7 @@ __global__ void dijsktra( matrix __dm, int __size)
     return;
   
   int32_t i, count, mindistance, nextnode;
-  int32_t *visited;
-  cudaMalloc(&visited, __size * sizeof(int32_t));
+  int32_t *visited = (int32_t*)malloc(__size * sizeof(int32_t));
   
   for (i = 0; i < __size; visited[i++] = 0) {}
 
@@ -37,6 +36,8 @@ __global__ void dijsktra( matrix __dm, int __size)
       }
     }
 
+    printf("ahoj %d \n", mindistance);
+
     visited[nextnode] = 1;
 
     for (i = 0; i < __size; i++) {
@@ -47,12 +48,13 @@ __global__ void dijsktra( matrix __dm, int __size)
       }
     }
   }
-  cudaFree(visited);
+  free(visited);
 }
 
-void run_algorithm(matrix , int32_t __size) {
-  dijsktra<<<__size / 1024, 1024>>>(matrix, __size);
-  cudaDeviceSynchronize(); 
+void run_algorithm(matrix __dm, int32_t __size) {
+  dijsktra<<<ceil(__size / 1024), 1024>>>(__dm, __size);
+  cudaDeviceSynchronize();
+  cudaDeviceReset();
 }
 
 int main(int argc, char* argv[]) {
