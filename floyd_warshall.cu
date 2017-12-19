@@ -152,7 +152,6 @@ __global__ void kernel_sm_double_dependent_blocks(matrix __dm, int32_t __size,
 
   // Copy data into shared memory
   block[i][j] = __dm[ri][rj];
-  __syncthreads();
 
   for (k = __b * TILE_SIZE; k < (__b + 1) * TILE_SIZE; k++) {
     if (k >= __size) break;
@@ -164,7 +163,6 @@ __global__ void kernel_sm_double_dependent_blocks(matrix __dm, int32_t __size,
 
   // Copy data back from shared into global memory
   __dm[ri][rj] = block[i][j];
-  __syncthreads();
 }
 
 // Kernel for double depenent blocks (threads on whole line with shared memory block)
@@ -196,7 +194,6 @@ __global__ void kernel_sml_double_dependent_blocks(matrix __dm, int32_t __size,
     if (rj + j >= __size) break;
     block[i][j] = __dm[ri][rj + j];
   }
-  __syncthreads();
 
   for (k = __b * TILE_SIZE; k < (__b + 1) * TILE_SIZE; k++) {
     __syncthreads();
@@ -215,7 +212,6 @@ __global__ void kernel_sml_double_dependent_blocks(matrix __dm, int32_t __size,
     if (rj + j >= __size) break;
     __dm[ri][rj + j] = block[i][j];
   }
-  __syncthreads();
 }
 
 void run_algorithm(matrix __dm, int32_t __size) {
