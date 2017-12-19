@@ -50,10 +50,8 @@ __global__ void dijsktra( matrix __dm, int __size) {
 
 void run_algorithm(matrix __dm, int32_t __size) {
   int32_t a = ceil(__size / 1024.0f);
-  printf("Running dijkstra! %d\n", a);
   dijsktra<<<a, 1024>>>(__dm, __size);
   HANDLE_ERROR(cudaDeviceSynchronize());
-  //cudaDeviceReset();
 }
 
 int main(int argc, char* argv[]) {
@@ -100,6 +98,7 @@ int main(int argc, char* argv[]) {
 
   dist_mtx2 = get_distance_matrix(graph_mtx, __size);
   dist_mtx2 = floyd_warshall_seq(dist_mtx2, __size);
+  print_matrix(dist_mtx2, __size);
   if (compare_matrices(hostMtx, dist_mtx2, __size)) {
     printf("Both parallel and serial result matrices match.\n");
   } else {
@@ -110,7 +109,8 @@ int main(int argc, char* argv[]) {
 
 #endif
 
-  //print_matrix(hostMtx, __size);
+  print_matrix(hostMtx, __size);
+  
 
   free_matrix_GPU(devMtx, __size);
 
