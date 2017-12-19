@@ -7,8 +7,8 @@
 #define _CHECK_MATRICES
 #define _PRINT_RESULT
 
-#ifndef _KERNELS
-  #define _KERNELS 3
+#ifndef _KERNEL
+  #define _KERNEL 3
 #endif
 
 #define TILE_SIZE 32
