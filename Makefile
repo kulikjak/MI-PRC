@@ -17,6 +17,20 @@ acc_fw: acc_floyd_warshall
 cuda_fw: cuda_floyd_warshall
 
 
+fw_kernels: cuda_fw_0 cuda_fw_1 cuda_fw_2 cuda_fw_3
+
+cuda_fw_0: floyd_warshall.cu cuda_utils.h
+	$(NVXX) floyd_warshall.cu -D _KERNEL=0 -o $@
+
+cuda_fw_1: floyd_warshall.cu cuda_utils.h
+	$(NVXX) floyd_warshall.cu -D _KERNEL=1 -o $@
+
+cuda_fw_2: floyd_warshall.cu cuda_utils.h
+	$(NVXX) floyd_warshall.cu -D _KERNEL=2 -o $@
+
+cuda_fw_3: floyd_warshall.cu cuda_utils.h
+	$(NVXX) floyd_warshall.cu -D _KERNEL=3 -o $@
+
 
 floyd_warshall: floyd_warshall.c utils.h
 	$(CXX) floyd_warshall.c -o $@

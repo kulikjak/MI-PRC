@@ -4,9 +4,12 @@
 
 #include "cuda_utils.h"
 
-// #define _CHECK_MATRICES
-// #define _PRINT_RESULT
-#define _KERNEL 0
+#define _CHECK_MATRICES
+#define _PRINT_RESULT
+
+#ifndef _KERNELS
+  #define _KERNELS 3
+#endif
 
 #define TILE_SIZE 32
 #define LOG_TILE_SIZE 5
