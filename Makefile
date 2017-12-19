@@ -48,7 +48,7 @@ acc_dijkstra: dijkstra.c utils.h
 	$(PGXX) dijkstra.c -o $@
 
 cuda_dijkstra: dijkstra.cu cuda_utils.h
-    $(NVXX) dijkstra.cu -o $@
+	$(NVXX) dijkstra.cu -o $@
 
 clean:
 	rm -f floyd_warshall dijkstra acc_floyd_warshall acc_dijkstra cuda_floyd_warshall cuda_dijkstra
