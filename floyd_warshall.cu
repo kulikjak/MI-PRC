@@ -8,7 +8,7 @@
 #define _PRINT_RESULT
 
 #ifndef _KERNEL
-  #define _KERNEL 3
+  #define _KERNEL 2
 #endif
 
 #define TILE_SIZE 32
