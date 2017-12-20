@@ -92,6 +92,20 @@ Poznámka: Průměrná stupeň uzlu grafu nemá na algoritmus žádný vliv, pro
 Z naměřených dat je vidět, že zrychlení není až tak velké jak by se očekávalo. U menších velikosti grafů (do 1000) je vidět že kopírování dat trvá déle než samotný výpočet a také, že kopírování je je přibližně vždy stejné a nezávísí tolik na velikosti matice. Dálě je z grafu vidět, že CPU verze je pro menší instance rychlejší a to hlavně z toho důvodu, že režie spouštění kernelu a nakopírování dat na grafické kartě převyšuje zisky nasledně velmi rychlého kernelu (viz. graf \ref{fig:d1}).
 
 
+\subsection{Cuda version}
+
+Cuda verze programu pracuje se stejným algoritmem jako OpenACC verze. Jediná změna bylo, že jsem použil memset na alokaci pole, v dokumentaci jsem si prečetl, že memset se chová podoběn jako samostaný kernel. Chtěl jsem použít volnání kernelu v kernelu ale když jsem narazil na bararieru kdy bych musel předávat všechny proměné. A také bariera s contextem proměných.
+
+\subsection{měření Cuda verze programu}
+
+Veškerá měření jsou ze školního serveru star (GPU nVidia GeForce GTX 480). Matice (grafy) použité pro všechna měření jsou náhodně generovány generátorem přiloženém k našemu zadání. Matice jsou velikostí 100 až 2500 s průměrným stupněm uzlu 30.
+
+Měření na každém grafu je provedené třikrát a použité jsou zprůměrované hodnoty.
+
+Z naměřených hodnot je vidět, že nejvice trvá kopirování dat mezi CPU a GPU. Složitost roste podle očekávání exponenciálně.
+
+I přesto se nepodařilo implementovat takový algoritmus, který by se dokázal vyrovnat OpenACC verzi\ref{fig:fw5}. Důvodem může být jiná implementace ACC verze a jiný způsob měření. Kromě toho, že v OpenACC verzi se měřilo přes \lstinline{omp_get_wtime()} a v Cuda verzi přes \lstinline{clock()}, byli úlohy i jinak spouštěné. Další důvod pro pomalejší bež bude také tím, že OpenACC parale
+
 \section{algoritmus Floyd-Warshall}
 
 Floyd–Warshall algoritmus je algoritmus pro nalezení nejkratších cest v orientovaném grafu. Algoritmus v každé iteraci zkusí pro všechny dvojice uzlů nalézt nejkratší cestu mezi dvěmi úhly. To dělá postupně $n$ krát, takže všechny existující cesty jsou postupně dopočítány. Každou iterací se zvětšuje množství uzlů přes, přes které se mezi dvojicí uzlů dostanu. Při poslední iteraci tak uvažuji i cestu přes všechny uzly v grafu. Pokud cesta mezi hranami existuje, bude na jejím místě v matici vzdáleností správná vzdálenost. Pokud cesta neexistuje, hodnota bude nastavená na nekonečno.
