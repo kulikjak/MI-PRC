@@ -161,5 +161,54 @@ Pozorování: Pokud se zadá velikost vektoru například 65535, vypíše kompil
   \end{tabular}
 \end{table}
 
+\subsection{Cuda version}
+
+Cuda verze programu pracuje s blocked verzí původního algoritmu stejně jako OpenACC verze. Bloky mají fixní velikost 32x32, díky čemuž se vejdou do maximálního počtu vláken na Cuda block.
+
+První tři kernely (pro independent a n-aligned bloky) zabírají minimální procento celého výpočetního času a proto nebyli nijak optimalizovány. Jejich implementace je velmi přímočará a kromě načtení pozice a ověření okrajů matice už pouze počítají jim dané políčko matice.
+
+Pro dvojzávislé bloky jsou v implementaci celkem čtyři různé kernely. První je opět přímočarou Cuda implementací blocked verze. Používá \lstinline{dim3} struktury pro bloky i vlákna tak, aby pokryl celou matici. Také jako jediný má $k$ cyklus před voláním kernelu a ne v něm.
+
+Druhý kernel je velmi podobný, jen nechává jedno vlákno zpracovat celý řádek jednoho bloku. Dále také přesouvá $k$ dovnitř do kernelu.
+
+Třetí implementace kopíruje svůj blok z globální paměti do \lstinline{shared} a výpočty provádí nad sdílenou a rychlou pamětí. Každé vlákno nejprve překopíruje jedno svoje políčko a potom nad ním počítá pro všechna $k$. Po dokončení výpočtu se opět kopíruje zpět do globální paměti.
+
+Poslední implementace spojuje oba dva předchozí přístupy dohromady a pracuje nad sdílenou pamětí s méně vlákny dělajícími více práce.
+
+\subsection{měření Cuda verze programu}
+
+Veškerá měření jsou ze školního serveru star (GPU nVidia GeForce GTX 480). Matice (grafy) použité pro všechna měření jsou náhodně generovány generátorem přiloženém k našemu zadání. Matice jsou velikostí 100 až 2500 s průměrným stupněm uzlu 30.
+
+Měření na každém grafu je provedené třikrát a použité jsou zprůměrované hodnoty.
+
+Z prvního grafu je zřetelné, že verze s vlákny dělajícími více práce jsou výrazně horší než dvě druhé \ref{fig:fw3}. To je pravděpodobně zapříčeněné overheadem z cyklů v každém vlákně. Počet vláken na blok je přesně o velikosti warpu (takže tam by problém být neměl), je ale možné, že omezení rezidentních bloků způsobuje výpadky z důvodu latence.
+
+Verze s velmi naivní reimplementací do Cuda dosahuje relativně dobrých výsledků a u menších matic se dá srovnávat s verzí se shared memory, která je dle grafu zdaleka nejlepší a už pro 2000 prvků je i s kopírováním dat rychlejší, než gvýpočet všech ostaních \ref{fig:fw4}. 
+
+I přesto se nepodařilo implementovat takový algoritmus, který by se dokázal vyrovnat OpenACC verzi\ref{fig:fw5}. Důvodem může být jiná implementace ACC verze a jiný způsob měření. Kromě toho, že v OpenACC verzi se měřilo přes \lstinline{omp_get_wtime()} a v Cuda verzi přes \lstinline{clock()}, byli úlohy i jinak spouštěné. OpenAcc verze byla spouštěná plánovačem, Cuda verze přímo (z důvodu nefunkčnosti plánovače).
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.7\linewidth]{../results/FW_Cuda.pdf}
+  \captionof{figure}{Základní porovnání všech kernelů}
+  \label{fig:fw3}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.7\linewidth]{../results/FW_Cuda2.pdf}
+  \captionof{figure}{Porovnání dvou nejlepších kernelů}
+  \label{fig:fw4}
+\end{figure}
+
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.7\linewidth]{../results/FW_Cuda3.pdf}
+  \captionof{figure}{Porovnání Cuda \& OpenAcc verze}
+  \label{fig:fw5}
+\end{figure}
+
+
 
 \end{document}
