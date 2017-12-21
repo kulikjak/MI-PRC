@@ -98,7 +98,7 @@ Cuda verze programu pracuje se stejným algoritmem jako OpenACC verze. Jediná z
 
 \subsection{měření Cuda verze programu}
 
-Veškerá měření jsou ze školního serveru star (GPU nVidia GeForce GTX 480). Matice (grafy) použité pro všechna měření jsou náhodně generovány generátorem přiloženém k našemu zadání. Matice jsou velikostí 100 až 2500 s průměrným stupněm uzlu 30.
+Veškerá měření jsou ze školního serveru star (GPU nVidia GeForce GTX 780Ti). Matice (grafy) použité pro všechna měření jsou náhodně generovány generátorem přiloženém k našemu zadání. Matice jsou velikostí 100 až 2500 s průměrným stupněm uzlu 30.
 
 Měření na každém grafu je provedené třikrát a použité jsou zprůměrované hodnoty.
 
@@ -184,29 +184,36 @@ Pozorování: Pokud se zadá velikost vektoru například 65535, vypíše kompil
 
 \subsection{Cuda version}
 
-Cuda verze programu pracuje s blocked verzí původního algoritmu stejně jako OpenACC verze. Bloky mají fixní velikost 32x32, díky čemuž se vejdou do maximálního počtu vláken na Cuda block.
+Cuda verze programu pracuje s blocked verzí původního algoritmu stejně jako CPU verze (OpenACC verze je trochu jiná v tom, že využívá bloky o velikosti 1x1). Bloky mají fixní velikost 32x32, díky čemuž se vejdou do maximálního počtu vláken na Cuda block a zároveň plně vytíží všechny warpy bloku.
 
-První tři kernely (pro independent a n-aligned bloky) zabírají minimální procento celého výpočetního času a proto nebyli nijak optimalizovány. Jejich implementace je velmi přímočará a kromě načtení pozice a ověření okrajů matice už pouze počítají jim dané políčko matice.
+První tři kernely (pro independent a n-aligned bloky) zabírají minimální procento celého výpočetního času a proto nebyli nijak více optimalizovány. Jejich implementace je velmi přímočará a kromě načtení pozice a ověření okrajů matice už pouze počítají jim dané políčko matice. 1-závislé kernely využívají \lstinline{dim3} strukturu pro přesné určení vlákna v bloku.
 
-Pro dvojzávislé bloky jsou v implementaci celkem čtyři různé kernely. První je opět přímočarou Cuda implementací blocked verze. Používá \lstinline{dim3} struktury pro bloky i vlákna tak, aby pokryl celou matici. Také jako jediný má $k$ cyklus před voláním kernelu a ne v něm.
+Pro dvojzávislé bloky jsou v implementované celkem čtyři různé kernely. První je opět přímočarou Cuda implementací blocked verze. Používá \lstinline{dim3} struktury pro bloky i vlákna tak, aby pokryl celou matici. Také jako jediný má $k$ cyklus před voláním kernelu a ne v něm. To znamená, že se kernel spouští vícekrát pro různé $k$, a díky tomu může být jednodušší (nejsou v něm cykly pro $k$).
 
-Druhý kernel je velmi podobný, jen nechává jedno vlákno zpracovat celý řádek jednoho bloku. Dále také přesouvá $k$ dovnitř do kernelu.
+Druhý kernel je velmi podobný, jen nechává jedno vlákno zpracovat celý řádek jednoho bloku a přesouvá $k$ dovnitř do kernelu. Díky tomu se kernel spouští pouze jednou a nevyužívá tolik vláken na block - celý se vejde do jednoho warpu. Jak později ukázalo měření, výkon tohoto kernelu je velmi špatný, neboť menší množství vláken u GPU neznamená nutně lepší výsledky (jak tomu můře být u CPU vláken).
 
 Třetí implementace kopíruje svůj blok z globální paměti do \lstinline{shared} a výpočty provádí nad sdílenou a rychlou pamětí. Každé vlákno nejprve překopíruje jedno svoje políčko a potom nad ním počítá pro všechna $k$. Po dokončení výpočtu se opět kopíruje zpět do globální paměti.
 
 Poslední implementace spojuje oba dva předchozí přístupy dohromady a pracuje nad sdílenou pamětí s méně vlákny dělajícími více práce.
 
+
+Je dobré zmínit, že implementace počítají s maticemi všech možných rozměrů a proto musí mít veliké množství ověřovaní toho, že některé vlůkno se nesnaží sahat mimo matici. Pokud bychom využívali pouze matice o velikosti $n \cdot 32$, můžeme tato ověření odstranit, neboť máme jistotu že spuštěné bloky přesně pokryjí celou matici.
+
 \subsection{měření Cuda verze programu}
 
-Veškerá měření jsou ze školního serveru star (GPU nVidia GeForce GTX 480). Matice (grafy) použité pro všechna měření jsou náhodně generovány generátorem přiloženém k našemu zadání. Matice jsou velikostí 100 až 2500 s průměrným stupněm uzlu 30.
+Veškerá měření jsou ze školního serveru star (GPU nVidia GeForce GTX 780Ti). Matice (grafy) použité pro všechna měření jsou náhodně generovány generátorem přiloženém k našemu zadání. Matice jsou velikostí 100 až 2500 s průměrným stupněm uzlu 30.
 
 Měření na každém grafu je provedené třikrát a použité jsou zprůměrované hodnoty.
 
-Z prvního grafu je zřetelné, že verze s vlákny dělajícími více práce jsou výrazně horší než dvě druhé \ref{fig:fw3}. To je pravděpodobně zapříčeněné overheadem z cyklů v každém vlákně. Počet vláken na blok je přesně o velikosti warpu (takže tam by problém být neměl), je ale možné, že omezení rezidentních bloků způsobuje výpadky z důvodu latence.
+Z prvního grafu je zřetelné, že verze s vlákny dělajícími více práce jsou výrazně horší než dvě druhé \ref{fig:fw3}. To je pravděpodobně zapříčeněné overheadem z cyklů v každém vlákně. V obou kernelech také není žádný důvod, proč by měli být rychlejíší (nějaké vylepšení algoritmu). Počet vláken na blok je přesně o velikosti warpu (takže tam by problém být neměl), je ale možné, že omezení rezidentních bloků způsobuje výpadky z důvodu latence.
 
-Verze s velmi naivní reimplementací do Cuda dosahuje relativně dobrých výsledků a u menších matic se dá srovnávat s verzí se shared memory, která je dle grafu zdaleka nejlepší a už pro 2000 prvků je i s kopírováním dat rychlejší, než gvýpočet všech ostaních \ref{fig:fw4}. 
+Verze s for cyklem by možná fungovala lépe u CPU, kde je vytváření vláken relativně složitá operace a je proto často lepší dát více práce jednomu vláknu. V případě GPU tomu ale tak není, neboť vytváření vláken a jejich plánování nemá žádný větší overhead, naopak veliké množství větvení (hlavně kde některá vlákna bloku projdou a některá ne) mohou způsobit výrazně zpomalení.
 
-I přesto se nepodařilo implementovat takový algoritmus, který by se dokázal vyrovnat OpenACC verzi\ref{fig:fw5}. Důvodem může být jiná implementace ACC verze a jiný způsob měření. Kromě toho, že v OpenACC verzi se měřilo přes \lstinline{omp_get_wtime()} a v Cuda verzi přes \lstinline{clock()}, byli úlohy i jinak spouštěné. OpenAcc verze byla spouštěná plánovačem, Cuda verze přímo (z důvodu nefunkčnosti plánovače).
+Verze s velmi naivní reimplementací do Cuda dosahuje relativně dobrých výsledků a u menších matic se dá srovnávat s verzí se shared memory, která je dle grafu zdaleka nejlepší a už pro 2000 prvků je i s kopírováním dat rychlejší, než výpočet všech ostaních \ref{fig:fw4}. To je z toho důvodu, že sdílená pamět je výrazně rychlejší (je umístěná přímo na chipu) a po rozdělení celé matice do sdílených pamětí nemá globální paměť tolik přístupů (stále tam ale jsou). Využití paměti je tak distribuováno mezi více různých.
+
+I přesto se nepodařilo implementovat takový algoritmus, který by se dokázal vyrovnat OpenACC verzi\ref{fig:fw5}. Jak je vidět, jak pro testovací data byla sice Cuda verze vždy rychlejší, pro větší grafy by ale pravděpodobně OpenACC verze fungovala lépe.
+
+Důvodem může být jiná implementace OpenACC verze algoritmu a jiný způsob měření. Kromě toho, že v OpenACC verzi se měřilo přes \lstinline{omp_get_wtime()} a v Cuda verzi přes \lstinline{clock()}, byli úlohy i jinak spouštěné. OpenAcc verze byla spouštěná plánovačem, Cuda verze přímo (z důvodu momentální nefunkčnosti plánovače).
 
 \begin{figure}
   \centering
@@ -231,5 +238,30 @@ I přesto se nepodařilo implementovat takový algoritmus, který by se dokázal
 \end{figure}
 
 
+\section{Závěr}
+
+Jak se dá vypozorovat z grafu porovnání obou algoritmů\ref{fig:comp}, Floyd-Warshall algoritmus je pro tento úkol lepší. To je relativně očekávaný výsledek, neboť přesně pro tento účel je algoritmus navrhován. Dijkstra je dělaný hlavně pro hledaní cest mezi dvěmi uzly (popř. z jednoho do všech ostatních) a u počítání všech cest ztrácí výkon, neboť počítá veliké množství hodnot víckrát.
+
+Dalším pozorování z této práce je, že grafické karty připojené k monitorům se chovají *velmi* divně, pokud je na nich spouštěn Cuda kód (včetně OpenACC). Kernely způsobovali mnoho problémů od problikávajícího monitoru, přes totální freez-up GUI Windows až po podezření z rozbití ovladačů grafické karty (???).
+
+To je způsobeno pravděpodobně hlavně tím, že grafické karty nemají nijak hlídanou paměť a nepočítají se sdílením karty mezi více uživatelů. Spouštění na serveru stár je tak velmi doporučované.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.7\linewidth]{../results/Comparison.pdf}
+  \captionof{figure}{Porovnání Dijkstrova a FW algoritmu}
+  \label{fig:comp}
+\end{figure}
+
+
+\begin{thebibliography}{9}
+
+\bibitem{}
+  Gary J Katz, Joe Kider,
+  \textit{All-Pairs-Shortest-Paths for Large Graphs on the GPU} [online],
+  University of Pennsylvania,
+  http://www.cis.upenn.edu/\~cis565/LECTURES/APSP.pdf.
+
+\end{thebibliography}
 
 \end{document}

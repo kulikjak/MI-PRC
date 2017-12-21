@@ -67,3 +67,18 @@ set key left top
 
 plot "results/kernels/cuda_fw_2.out" using 1:(($3+$5+$7)/3) with line title "Cuda kernels", \
      "results/fw_openacc_blocked.out" using 1:(($3+$5+$7)/3) with line title "OpenAcc kernels"
+
+#-------------------------------------------------------------------------#
+#-------------------------------------------------------------------------#
+
+set output "results/Comparison.pdf"
+
+set title "Floyd Warshall and Dijkstra algorithm comparison"
+set xlabel "order of matrix"
+set ylabel "time (s)"
+
+set xtics mirror
+set key left top
+
+plot "results/kernels/cuda_fw_2.out" using 1:(($3+$5+$7)/3) with line title "Floyd Warshall", \
+     "results/cuda_dijkstra.out" using 1:(($3+$5+$7)/3) with line title "Dijkstra"
