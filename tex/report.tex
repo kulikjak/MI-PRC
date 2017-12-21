@@ -83,7 +83,7 @@ Měření na každém grafu je provedené třikrát a použité jsou zprůměrov
 \begin{figure}
   \centering
   \includegraphics[width=.7\linewidth]{../results/Dijkstra.png}
-  \captionof{figure}{Porovnání různách verzí Dijkstry}
+  \captionof{figure}{Porovnání Dijkstry na CPU a přes OpenACC}
   \label{fig:d1}
 \end{figure}
 
@@ -102,9 +102,16 @@ Veškerá měření jsou ze školního serveru star (GPU nVidia GeForce GTX 480)
 
 Měření na každém grafu je provedené třikrát a použité jsou zprůměrované hodnoty.
 
-Z naměřených hodnot je vidět, že nejvice trvá kopirování dat mezi CPU a GPU. Složitost roste podle očekávání exponenciálně.
+Z naměřených hodnot je vidět, že nejvice trvá kopirování dat mezi CPU a GPU. Doba běhu roste podle očekávání polynomiálně.
 
-I přesto se nepodařilo implementovat takový algoritmus, který by se dokázal vyrovnat OpenACC verzi\ref{fig:fw5}. Důvodem může být jiná implementace ACC verze a jiný způsob měření. Kromě toho, že v OpenACC verzi se měřilo přes \lstinline{omp_get_wtime()} a v Cuda verzi přes \lstinline{clock()}, byli úlohy i jinak spouštěné. Další důvod pro pomalejší bež bude také tím, že OpenACC parale
+I přesto se nepodařilo implementovat takový algoritmus, který by se dokázal vyrovnat OpenACC verzi\ref{fig:d1}. Důvodem může být jiná implementace, ACC verze a jiný způsob měření. Kromě toho, že v OpenACC verzi se měřilo přes \lstinline{omp_get_wtime()} a v Cuda verzi přes \lstinline{clock()}, byli úlohy i jinak spouštěné. Další důvod pro pomalejší běh může být také to, že OpenACC se podařilo zparalelizovat některe vnořené cykly. Na grafu\ref{fig:d2} je vidět jak, i zde ma kopirovaní matice relativně konstatni přírustek.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.7\linewidth]{../results/cuda_dijkstra.png}
+  \captionof{figure}{Graf doby běhu Dijkstry na na GPU přes cudu}
+  \label{fig:d2}
+\end{figure}
 
 \section{algoritmus Floyd-Warshall}
 
